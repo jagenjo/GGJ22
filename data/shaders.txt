@@ -33,7 +33,7 @@ varying vec3 v_pos;
 uniform mat4 u_vp;
 uniform vec4 u_color;
 uniform mat4 u_model;
-uniform sampler2D u_texture;
+uniform sampler2D u_color_texture;
 
 void main() {
 	vec4 color = u_color * texture2D( u_texture, v_coord );

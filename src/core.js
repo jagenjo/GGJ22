@@ -118,6 +118,7 @@ var CORE = {
 	{
 		if(this.current_stage && this.current_stage.update)
 			this.current_stage.update(dt);
+		Tween.update(dt);
 	},
 	
 	handleVisibilityChange: function(e)
@@ -238,6 +239,18 @@ var CORE = {
 			//PLAYSTAGE.toggleDebugTab();
 			//e.preventDefault();
 		}
+	},
+
+	takeScreenshot: function()
+	{
+		var encoding = "image/png";
+		var canvas = this.canvas;
+		canvas.toBlob(inner,encoding);
+
+		function inner(blob)
+		{
+			CORE.downloadFile( "screenshot.png", blob, encoding );
+		}		
 	}
 };
 

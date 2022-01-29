@@ -72,6 +72,8 @@ function WebGLGameRenderer( canvas )
 	this.gl = GL.create( {canvas: canvas });
 	enableWebGLCanvas( canvas );
 
+	this.card_size = 2;
+
 	this.camera = new RD.Camera();
 	this.camera.lookAt([0,10,40],[0,0,0],[0,1,0]);
 	this.camera.perspective( 60, 1, 0.1,100);
@@ -81,29 +83,44 @@ function WebGLGameRenderer( canvas )
 	this.hard_camera.perspective( 60, 1, 0.1,100);
 
 	this.scene_renderer = new RD.Renderer( this.gl );
+	this.scene_renderer.loadShaders("data/shaders.txt");
 
 	this.scene = new RD.Scene();
 	this.floor_node = new RD.SceneNode({ mesh:"planeXZ", texture: "data/table.png", scale:[12,12,12] });
 	this.scene.root.addChild( this.floor_node );
+
+	//all cards on the game should be inside this node
 	this.cards_node = new RD.SceneNode();
+	this.cards_node.position = [0,0.2,0];
 	this.scene.root.addChild( this.cards_node );
 
-	this.scene_renderer.loadShaders("data/shaders.txt");
+	this.player_hand = new RD.SceneNode();
+	this.player_hand.position = [0,4,5];
+	this.player_hand.setEulerRotation(0,0,0.5);
+	this.cards_node.addChild( this.player_hand );
 
 	this.card_maker = new CardMaker();
-
-	this.test_card = new Card(1);
 }
 
 WebGLGameRenderer.prototype = Object.create( CanvasGameRenderer.prototype ); //inherit
 
-WebGLGameRenderer.prototype.renderGame = function( game, player )
+WebGLGameRenderer.prototype.renderGame = function( game, player, settings )
 {
+	//debug
+	if(!this.test_card)
+	{
+		this.test_card = new Card(game);
+		var node = this.getCardNode( this.test_card );
+	}
+
+
 	//camera according to player
 	var f = 0.05;
-	this.hard_camera.lookAt([0,10,10],[0,-2,0],[0,1,0]);
+	this.hard_camera.lookAt([0 + settings.cam_offset[0] * 2,10 - settings.cam_offset[1] * 2,10],[0,-2,0],[0,1,0]);
 	this.camera.position = vec3.lerp(this.camera.position,this.camera.position,this.hard_camera.position,f);
 	this.camera.target = vec3.lerp(this.camera.target,this.camera.target,this.hard_camera.target,f);
+	var aspect = gl.canvas.width / gl.canvas.height;
+	this.camera.perspective( 60, aspect, 0.1,100);
 
 	//prerender; create nodes and position all
 	this.preRender(game);
@@ -121,37 +138,53 @@ WebGLGameRenderer.prototype.renderGame = function( game, player )
 
 WebGLGameRenderer.prototype.preRender = function( game )
 {
+	var size = this.card_size;
 	//iterate through all cards
 	for(var i = 0; i < game.players.length; ++i)
 	{
 		var player = game.players[i];
 
-		for(var j = 0; j < player.hand.length; ++j)
+		var num_cards = player.hand.length;
+		for(var j = 0; j < num_cards; ++j)
 		{
 			var card = player.hand[j];
 			var node = this.getCardNode(card);
-			node.position = [j*2,0,0];
+			node.position = [j*(size+0.1) - (num_cards-1)*0.5*size,4,8 + j * 0.01];
+			node.setEulerRotation(0,0,0.5);
 		}
 	}
 
 }
 
+WebGLGameRenderer.prototype.tweenNodeToNode = function( node, node )
+{
+	
+}
+
 WebGLGameRenderer.prototype.getCardNode = function(card)
 {
-	if(card._node)
-		return card._node;
+	var size = this.card_size;
 
-	var node = card._node || new RD.SceneNode();
-	node.mesh = "planeXZ";
-	if(!node._parent)
-		this.cards_node.addChild(node);
+	if(!card._node) //create
+	{
+		card._node = new RD.SceneNode(); //use pool?
+		card._node.mesh = "planeXZ";
+		this.cards_node.addChild( card._node );
+	}
 
-	node.texture = this.getCardTexture( card );
+	var node = card._node;
+	var tex = this.getCardTexture( card );
+	if(!tex)
+		return node;
+	node.texture = tex.name;
 
-	card._node = node;
+	var aspect = tex.width / tex.height;
+	node.scaling = [size,size,size/aspect];
+
 	return node;
 }
 
+/*
 WebGLGameRenderer.prototype.renderCards = function( cards )
 {
 	var m = mat4.create();
@@ -187,6 +220,7 @@ WebGLGameRenderer.prototype.renderCard = function( card, model )
 	mat4.scale(model, model, [2,2*aspect,2] );
 	this.scene_renderer.renderMesh( model, mesh, tex, null, shader );
 }
+*/
 
 WebGLGameRenderer.prototype.getCardTexture = function( card )
 {
@@ -200,6 +234,8 @@ WebGLGameRenderer.prototype.getCardTexture = function( card )
 
 	//update texture
 	var tex = new GL.Texture.fromImage( img, { filter: gl.NEAREST } );
+	tex.name = ":card_" + card.id;
+	gl.textures[ tex.name ] = tex;
 	card._texture = tex;
 	return tex;
 }

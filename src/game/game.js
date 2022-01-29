@@ -30,6 +30,7 @@ function Game()
 		mountEvents: []
 	};
 	this.current_player = 0; //index
+	this.last_card_id = 0;
 
 	this.onNewTurn = null;
 }
@@ -47,6 +48,8 @@ Game.prototype.init = function()
 	var player2 = new Player(1);
 	this.players.push( player2 );
 	player2._game = this;
+
+	this.last_card_id = 0;
 
 	this.fillStacks();
 }
@@ -67,14 +70,14 @@ Game.prototype.fillStacks = function()
 	}
 	for (var card_key in DECK.events)
 	{
-		var card = new Card;
+		var card = new Card(this);
 		card.fromJSON(DECK.events[card_key]);
 		card.__game = this;
 		this.cards.mountEvents.push(card);
 	}
 	for (const card_key in DECK.goals)
 	{
-		var card = new Card;
+		var card = new Card(this);
 		card.fromJSON(DECK.goals[card_key]);
 		card.__game = this;
 		this.cards.mountGoals.push(card);
@@ -140,7 +143,7 @@ Game.prototype.generatePersonCard = function( gender )
 	const names_DB = { F: ["Laura", "Julia", "Miriam"], M: ["Antonio", "Marc", "Pablo"] };
 	const trait_DB = { positive: ["Deportista", "Culto", "Lider"], negative: ["Timido", "Torpe", "Egoista"] };
 
-	var card = new Card();
+	var card = new Card(this);
 	card.type = Card.TYPE_PERSON;
 	card.name = names_DB[gender].random();
 	card.gender = gender;
@@ -153,7 +156,13 @@ Game.prototype.generatePersonCard = function( gender )
 
 Game.prototype.toJSON = function()
 {
-	return {players: this.players.toJSON(), turn: this.turn, card_piles: this.cards.toJSON(), current_player_idx: this.current_player};
+	return { 
+		players: this.players.toJSON(),
+		card_piles: this.cards.toJSON(),
+		turn: this.turn,
+		current_player_idx: this.current_player,
+		last_card_id: this.last_card_id
+	};
 }
 
 Game.demogame = {};
@@ -199,8 +208,12 @@ Player.prototype.fromJSON = function(json)
 
 
 //represent any card of the game, very generic
-function Card()
+function Card( game )
 {
+	if(!game)
+		throw("no game specified");
+
+	this.id = game.last_card_id++;
 	this.type = 0;
 	this.name = "";
 	this.gender = "";
@@ -219,11 +232,12 @@ Card.TYPE_STR = ["NONE","PERSON","EVENT","GOAL"];
 
 Card.prototype.toJSON = function()
 {
-	return { type: this.type, name: this.name, gender: this.gender, visuals: this.visuals, traits: this.traits };
+	return { id: this.id, type: this.type, name: this.name, gender: this.gender, visuals: this.visuals, traits: this.traits };
 }
 
 Card.prototype.fromJSON = function(json)
 {
+	this.id = json.id || this.id;
 	this.type = json.type || this.type;
 	this.name = json.name || this.name;
 	this.gender = json.gender || this.gender;

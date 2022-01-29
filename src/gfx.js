@@ -8,7 +8,7 @@ var GFX = {
 		this.renderer = new WebGLGameRenderer( this.canvas );
 	},
 
-	renderGame: function( game, player )
+	renderGame: function( game, player, settings )
 	{
 		var canvas = this.canvas;
 		canvas.width = document.body.offsetWidth;
@@ -17,7 +17,7 @@ var GFX = {
 		//render background?
 
 		//show the game
-		this.renderer.renderGame( game, player );
+		this.renderer.renderGame( game, player, settings );
 
 		//render menus?
 	}

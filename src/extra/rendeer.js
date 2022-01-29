@@ -5401,7 +5401,7 @@ Renderer.prototype.createShaders = function()
 			#else\n\
 				vec4 color = u_color * texture2D(u_color_texture, v_coord);\n\
 			#endif\n\
-			if(color.w < u_global_alpha_clip)\n\
+			if(color.w <= u_global_alpha_clip)\n\
 				discard;\n\
 			gl_FragColor = color;\
 		}\
@@ -5435,7 +5435,7 @@ Renderer.prototype.createShaders = function()
 		uniform sampler2D u_color_texture;\n\
 		void main() {\n\
 			vec4 color = u_color * texture2D(u_color_texture, v_coord);\n\
-			if(color.w < u_global_alpha_clip)\n\
+			if(color.w <= u_global_alpha_clip)\n\
 				discard;\n\
 			gl_FragColor = color;\n\
 		}\
