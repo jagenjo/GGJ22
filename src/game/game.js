@@ -9,10 +9,10 @@ function Game()
 	this.players = []; //leave it as array to have the possibility to have more than two players
 	this.turn = 0;
 	this.cards = {
-		mountM: [],
-		mountF: [],
+		persons: { F: [], M: []},
 		pool: [],
 		mountGoals: [],
+		activeGoals: [],
 		mountEvents: []
 	};
 	this.current_player = 0; //index
@@ -39,50 +39,63 @@ Game.prototype.init = function()
 Game.prototype.fillStacks = function()
 {
 	// Rellenar los montones del game a partir del mazo
-	for (const card_key in DECK.persons) //DECK.persons me da undefined
+	const N_PERSON_CARDS = 16; // Multiple de 2
+	for (const gender in ["F", "M"])
 	{
-		const card_JSON = DECK.persons[card_key];
-		var card = new Card;
-		card.fromJSON(card_JSON);
-		console.log(card);
-		card.game = this;
-		card.gender === "F" ? this.cards.mountF.push(card) : card.gender === "M" ? this.cards.mountM.push(card) : console.log("Error: Gender not recognized:" + card.gender);
+		for (var i = 0; i < N_PERSON_CARDS / 2; ++i)
+		{
+			var card = this.generatePersonCard(gender);
+			card.__game = this;
+			this.cards.persons[gender].push(card);
+		}
 	}
 	for (const card_key in DECK.event_card_key)
 	{
-		const card_JSON = DECK.events[card_key];
 		var card = new Card;
-		card.fromJSON(card_JSON);
-		console.log(card);
-		card.game = this;
+		card.fromJSON(DECK.events[card_key]);
+		card.__game = this;
 		this.cards.mountEvents.push(card);
 	}
 	for (const goal_card_key in DECK.goals)
 	{
-		const card_JSON = DECK.goals[card_key];
 		var card = new Card;
-		card.fromJSON(card_JSON);
-		console.log(card);
-		card.game = this;
+		card.fromJSON(DECK.goals[card_key]);
+		card.__game = this;
 		this.cards.mountGoals.push(card);
 	}
 
 	//dar cartas a los jugadores hasta que tengan N cartas
-	//...
-	var N_CARDS_IN_HAND = 4;
+	var N_CARDS_IN_HAND = 4; // Multiple de 2
 	for (var i = 0; i < this.players.length; ++i)
 	{
-		for (var j = 0; j < N_CARDS_IN_HAND; ++j)
+		for (const gender in ["F", "M"])
 		{
-			// y si this.cards.mountF/mountM.length == 0?
-			var card = j % 2 == 0 ? this.cards.mountF[Math.floor(Math.random() * this.cards.mountF.length)] : this.cards.mountM[Math.floor(Math.random() * this.cards.mountM.length)];
-			this.players[i].hand.push(card);
+			for (var j = 0; j < N_CARDS_IN_HAND / 2; ++j)
+			{
+				var card = this.cards.persons[gender].splice(Math.floor(Math.random() * this.cards.persons[gender].length), 1);
+				card.__owner = this.players[i];
+				this.players[i].hand.push(card);
+			}
 		}
 	}
 
 	//rellenar el pool de la mesa hasta que haya Nx2 cartas
+	for (const gender in ["F", "M"])
+	{
+		for (var i = 0; i < N_CARDS_IN_HAND; ++i)
+		{
+			var card = this.cards.persons[gender].splice(Math.floor(Math.random() * this.cards.persons[gender].length), 1);
+			this.cards.pool.push(card);
+		}
+	}
 
 	//rellenar los objetivos de la mesa
+	const N_ACTIVE_GOALS = 3;
+	for (var i = 0; i < N_ACTIVE_GOALS; ++i)
+	{
+		var card = this.cards.mountGoals.splice(Math.floor(Math.random() * this.cards.mountGoals.length), 1);
+		this.cards.mountGoals.push(card);
+	}
 }
 
 Game.prototype.endTurn = function()
@@ -106,9 +119,11 @@ Game.prototype.demoGame = function()
 
 }
 
-Game.prototype.generatePersonCard = function( type )
+Game.prototype.generatePersonCard = function( gender )
 {
 	var card = new Card();
+	card.type = Card.TYPE_PERSON;
+	card.name = ""; // Search name DB
 	//fill name
 	//fill attributes
 	return card;
