@@ -22,6 +22,7 @@ function Game()
 	GAME = this;
 	this.players = []; //leave it as array to have the possibility to have more than two players
 	this.turn = 0;
+	this.era = 0;
 	this.cards = {
 		persons: { F: [], M: []},
 		pool: [],
@@ -64,7 +65,7 @@ Game.prototype.fillStacks = function()
 		for (var i = 0; i < N_PERSON_CARDS / 2; ++i)
 		{
 			var card = this.generatePersonCard(gender);
-			card.__game = this;
+			card._game = this;
 			this.cards.persons[gender].push(card);
 		}
 	}
@@ -72,14 +73,14 @@ Game.prototype.fillStacks = function()
 	{
 		var card = new Card(this);
 		card.fromJSON(DECK.events[card_key]);
-		card.__game = this;
+		card._game = this;
 		this.cards.mountEvents.push(card);
 	}
 	for (const card_key in DECK.goals)
 	{
 		var card = new Card(this);
 		card.fromJSON(DECK.goals[card_key]);
-		card.__game = this;
+		card._game = this;
 		this.cards.mountGoals.push(card);
 	}
 
@@ -122,6 +123,28 @@ Game.prototype.endTurn = function()
 	//evaluate results
 		//create child cards
 		//
+	
+	for (var i = 0; i = this.players[current_player].actions.length; ++i)
+	{
+		this.players[current_player].actions[i].execute();
+	}
+	current_player = (current_player+1) % 2;
+	if (this.players[current_player].hand.length == 0)
+	{
+		// nueva ronda, las cartas en frontline de ambos players se hacen adultas y pasan a la mano
+		++this.turn;
+		if (this.turn % 3 == 0)
+		{
+			this.startEra();
+		}
+	}
+}
+
+Game.prototype.startEra = function()
+{
+	++this.era;
+	// update goal pile
+	// evento global
 }
 
 Game.prototype.getCurrentPlayer = function()
@@ -153,6 +176,27 @@ Game.prototype.generatePersonCard = function( gender )
 	return card;
 }
 
+Game.prototype.pairCards = function ( hand_id, pool_id )
+{
+	// new_card = merge_cards(hand, pool)
+	// remove card from player hand
+	// remove card from pool
+	// add new_card to player frontline
+	// add random card from game.cards.persons to pool
+}
+
+Game.prototype.applyEvent = function ( hand_id, event_id )
+{
+	// "boost" hand card according to event card (necesita stats la clase Card?)
+}
+
+Game.prototype.submitGoal = function ( hand_id, goal_id )
+{
+	// remove card from player hand
+	// remove card_g from game.cards.activeGoals
+	// add card_g to player.won
+	// add score to player (las cartas de objetivo necesitan atributo score?)
+}
 
 Game.prototype.toJSON = function()
 {
@@ -191,9 +235,41 @@ Player.prototype.addCard = function( card, target )
 }
 
 //select couple, select goal
-Player.prototype.addAction = function()
+Player.prototype.addAction = function( action_str, hand_card_id, secondary_card_id )
 {
-	
+	var action = new Action;
+	action.type = Action.TYPE_STR.indexOf(action_str.toUpperCase());
+	action.hand_card = hand_card_id;
+	action.secondary_card = secondary_card_id;
+	action._owner = this;
+	action._game = this._game;
+	switch (action.type)
+	{
+		case Action.TYPE_PAIR_CARDS:
+		{
+			action.execute = function () { this._game.pairCards(this.hand_card, this.secondary_card); };
+			break;
+		}
+		case Action.TYPE_APPLY_EVENT:
+		{
+			action.execute = function () { this._game.applyEvent(this.hand_card, this.secondary_card); };
+			break;
+		}
+		case Action.TYPE_SUBMIT_GOAL:
+		{
+			action.execute = function () { this._game.submitGoal(this.hand_card, this.secondary_card); };
+			break;
+		}
+		default:
+		{
+			var accepted_actions = "";
+			for (var i = 1; i < Action.TYPE_STR.length; ++i)
+			{
+				accepted_actions += Action.TYPE_STR[i] + (i < Action.TYPE_STR.length - 1 ? ", " : "");
+			}
+			console.log("Error: Unrecognized action.\nList of accepted actions: " + accepted_actions);
+		}
+	}
 }
 
 Player.prototype.toJSON = function()
@@ -248,4 +324,37 @@ Card.prototype.fromJSON = function(json)
 Card.prototype.toString = function()
 {
 	return "CARD: ["+Card.TYPE_STR[this.type]+"]";
+}
+
+function Action()
+{
+	this.type = 0;
+
+	// Ids of the cards involved in the action
+	this.hand_card = -1;
+	this.secondary_card = -1;
+
+	this._owner = null;
+	this._game = null;
+}
+
+Action.TYPE_PAIR_CARDS = 1;
+Action.TYPE_APPLY_EVENT = 2;
+Action.TYPE_SUBMIT_GOAL = 3;
+
+Action.TYPE_STR = ["NONE","PAIR_CARDS","APPLY_EVENT","SUBMIT_GOAL"];
+
+Action.prototype.toJSON = function()
+{
+	var ret = {type: Action.TYPE_STR[this.type], player_index: this._owner.index, hand_card_id: this.hand_card};
+	if (this.type > 0)
+	{
+		ret[["pool_card_id","event_card_id","goal_card_id"][this.type-1]] = this.secondary_card;
+	}
+	return ret;
+}
+
+Action.prototype.fromJSON = function(json)
+{
+	
 }
