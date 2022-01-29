@@ -2,9 +2,14 @@ var DECK = {};
 
 //ALL CARDS
 DECK.events = {
-	"Death": { type: Card.TYPE_EVENT, name : "Death", visuals: {}} // ...
+	"Muerte": { type: Card.TYPE_EVENT, name : "Muerte", visuals: {}},
+	"Pandemia": { type: Card.TYPE_EVENT, name : "Pandemia", visuals: {}},
+	"Beca": { type: Card.TYPE_EVENT, name : "Beca", visuals: {}} // ...
 };
 
 DECK.goals = {
-	"Olimpiadas": { type: Card.TYPE_GOAL, name: "Olimpiadas", visuals: {}} // ...
+	"Olimpiadas": { type: Card.TYPE_GOAL, name: "Olimpiadas", visuals: {}},
+	"Premio Nobel": { type: Card.TYPE_GOAL, name: "Premio Nobel", visuals: {}},
+	"Cura contra el cancer": { type: Card.TYPE_GOAL, name: "Cura contra el cancer", visuals: {}},
+	"Presidente": { type: Card.TYPE_GOAL, name: "Presidente", visuals: {}} // ...
 };
