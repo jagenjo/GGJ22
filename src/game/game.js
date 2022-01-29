@@ -61,7 +61,11 @@ Game.prototype.getCurrentPlayer = function()
 
 Game.prototype.demoGame = function()
 {
-	
+	this.init();
+	//create playrs
+	//hago accion
+	//paso turno
+
 }
 
 Game.prototype.generateCard = function( type )
@@ -71,6 +75,17 @@ Game.prototype.generateCard = function( type )
 	return card;
 }
 
+
+Game.prototype.toJSON = function()
+{
+	return {};
+}
+
+Game.demogame = {};
+
+Game.prototype.fromJSON = function(json)
+{
+}
 
 //player state
 function Player(index)
@@ -97,6 +112,16 @@ Player.prototype.addAction = function()
 	
 }
 
+Player.prototype.toJSON = function()
+{
+	return {};
+}
+
+Player.prototype.fromJSON = function(json)
+{
+	
+}
+
 //represent any card of the game, very generic
 function Card()
 {
@@ -115,6 +140,11 @@ Card.TYPE_GOAL = 3;
 
 Card.TYPE_STR = ["NONE","PERSON","EVENT","GOAL"];
 
+Card.prototype.toJSON = function()
+{
+	return {};
+}
+
 Card.prototype.fromJSON = function(json)
 {
 		
@@ -125,7 +155,8 @@ Card.prototype.toString = function()
 	return "CARD: ["+Card.TYPE_STR[this.type]+"]";
 }
 
-
+//ALL CARDS
 DECK.events = {
 	"death": { type: Card.TYPE_EVENT }
 };
+
