@@ -13,6 +13,7 @@ var GFX = {
 		var canvas = this.canvas;
 		canvas.width = document.body.offsetWidth;
 		canvas.height = document.body.offsetHeight;
+		gl.viewport(0,0,canvas.width,canvas.height);
 		//render background?
 
 		//show the game
