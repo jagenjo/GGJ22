@@ -1,6 +1,20 @@
 //Encapsulates a full Game with its players, cards, etc
 //NO RENDER OR INTERACTION HERE, JUST DATA AND RULES
 
+Array.prototype.random = function()
+{
+	var v = Math.floor( Math.random() * this.length );
+	return this[v];
+}
+
+Array.prototype.randomPop = function()
+{
+	var v = Math.floor( Math.random() * this.length );
+	var c = this.splice(v,1);
+	return c[0];
+}
+
+//GAME *******************************************
 var GAME = null;
 
 function Game()
