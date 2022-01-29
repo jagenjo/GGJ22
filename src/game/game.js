@@ -48,7 +48,7 @@ Game.prototype.init = function()
 	this.players.push( player2 );
 	player2._game = this;
 
-	fillStacks();
+	this.fillStacks();
 }
 
 
