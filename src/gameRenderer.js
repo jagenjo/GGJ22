@@ -129,7 +129,7 @@ WebGLGameRenderer.prototype.preRender = function( game )
 		for(var j = 0; j < player.hand.length; ++j)
 		{
 			var card = player.hand[j];
-			var node = this.getCardNode();
+			var node = this.getCardNode(card);
 			node.position = [j*2,0,0];
 		}
 	}
