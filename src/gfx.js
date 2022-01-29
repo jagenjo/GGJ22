@@ -11,7 +11,7 @@ var GFX = {
 		//render background?
 
 		//show the game
-		this.renderer.render( game, player);
+		this.renderer.render( game, player );
 
 		//render menus?
 	}

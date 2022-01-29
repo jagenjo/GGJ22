@@ -13,7 +13,6 @@ var CORE = {
 		this.iOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 		document.addEventListener( "visibilitychange", this.handleVisibilityChange.bind(this), false);
     
-
 		//init modules
 		this.initGFX();
 		
@@ -27,7 +26,9 @@ var CORE = {
 
 	initGFX: function()
 	{
-		//craete canvas or WebGL
+		//create canvas or WebGL
+
+		//GFX.init();
 	},
 
 	addStage: function( stage )
@@ -218,18 +219,16 @@ var CORE = {
 		}
 		if(e.code == "F2")
 		{
-			CORE.changeToStage( EDITORSTAGE );
+			//CORE.changeToStage( EDITORSTAGE );
 			e.preventDefault();
 		}
-		if(e.code == "KeyR")
-			GFX.reloadShaders();
-		if(e.code == "KeyF")
-			GFX.game_renderer.map_renderer.freeze_frustum = !GFX.game_renderer.map_renderer.freeze_frustum;
+		//if(e.code == "KeyR")
+		//	GFX.reloadShaders();
 
 		if(e.keyCode == 9) //tab
 		{
-			PLAYSTAGE.toggleDebugTab();
-			e.preventDefault();
+			//PLAYSTAGE.toggleDebugTab();
+			//e.preventDefault();
 		}
 	}
 };
