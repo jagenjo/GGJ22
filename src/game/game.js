@@ -54,7 +54,7 @@ Game.prototype.fillStacks = function()
 {
 	// Rellenar los montones del game a partir del mazo
 	const N_PERSON_CARDS = 16; // Multiple de 2
-	for (const gender in ["F", "M"])
+	for (const gender of ["F", "M"])
 	{
 		for (var i = 0; i < N_PERSON_CARDS / 2; ++i)
 		{
@@ -63,14 +63,14 @@ Game.prototype.fillStacks = function()
 			this.cards.persons[gender].push(card);
 		}
 	}
-	for (const card_key in DECK.event_card_key)
+	for (var card_key in DECK.events)
 	{
 		var card = new Card;
 		card.fromJSON(DECK.events[card_key]);
 		card.__game = this;
 		this.cards.mountEvents.push(card);
 	}
-	for (const goal_card_key in DECK.goals)
+	for (const card_key in DECK.goals)
 	{
 		var card = new Card;
 		card.fromJSON(DECK.goals[card_key]);
@@ -82,11 +82,11 @@ Game.prototype.fillStacks = function()
 	var N_CARDS_IN_HAND = 4; // Multiple de 2
 	for (var i = 0; i < this.players.length; ++i)
 	{
-		for (const gender in ["F", "M"])
+		for (const gender of ["F", "M"])
 		{
 			for (var j = 0; j < N_CARDS_IN_HAND / 2; ++j)
 			{
-				var card = this.cards.persons[gender].splice(Math.floor(Math.random() * this.cards.persons[gender].length), 1);
+				var card = this.cards.persons[gender].randomPop();
 				card.__owner = this.players[i];
 				this.players[i].hand.push(card);
 			}
@@ -94,11 +94,11 @@ Game.prototype.fillStacks = function()
 	}
 
 	//rellenar el pool de la mesa hasta que haya Nx2 cartas
-	for (const gender in ["F", "M"])
+	for (const gender of ["F", "M"])
 	{
 		for (var i = 0; i < N_CARDS_IN_HAND; ++i)
 		{
-			var card = this.cards.persons[gender].splice(Math.floor(Math.random() * this.cards.persons[gender].length), 1);
+			var card = this.cards.persons[gender].randomPop();
 			this.cards.pool.push(card);
 		}
 	}
@@ -107,8 +107,8 @@ Game.prototype.fillStacks = function()
 	const N_ACTIVE_GOALS = 3;
 	for (var i = 0; i < N_ACTIVE_GOALS; ++i)
 	{
-		var card = this.cards.mountGoals.splice(Math.floor(Math.random() * this.cards.mountGoals.length), 1);
-		this.cards.mountGoals.push(card);
+		var card = this.cards.mountGoals.randomPop();
+		this.cards.activeGoals.push(card);
 	}
 }
 
@@ -135,18 +135,23 @@ Game.prototype.demoGame = function()
 
 Game.prototype.generatePersonCard = function( gender )
 {
+	const names_DB = { F: ["Laura", "Julia", "Miriam"], M: ["Antonio", "Marc", "Pablo"] };
+	const trait_DB = { positive: ["Deportista", "Culto", "Lider"], negative: ["Timido", "Torpe", "Egoista"] };
+
 	var card = new Card();
 	card.type = Card.TYPE_PERSON;
-	card.name = ""; // Search name DB
-	//fill name
-	//fill attributes
+	card.name = names_DB[gender].random();
+	card.gender = gender;
+	// card.visuals...
+	card.traits.push(trait_DB.positive.random());
+	card.traits.push(trait_DB.negative.random());
 	return card;
 }
 
 
 Game.prototype.toJSON = function()
 {
-	return {};
+	return {players: this.players.toJSON(), turn: this.turn, card_piles: this.cards.toJSON(), current_player_idx: this.current_player};
 }
 
 Game.demogame = {};
@@ -182,7 +187,7 @@ Player.prototype.addAction = function()
 
 Player.prototype.toJSON = function()
 {
-	return {};
+	return {index: this.index, hand: this.hand.toJSON(), frontline: this.frontline.toJSON(), won: won.toJSON(), score: this.score, actions: actions.toJSON()};
 }
 
 Player.prototype.fromJSON = function(json)
