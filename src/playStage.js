@@ -5,6 +5,7 @@ var PLAYSTAGE = {
 	{
 		this.game = new Game();
 		this.game.init();
+
 	},
 
 	render: function()

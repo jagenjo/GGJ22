@@ -2,7 +2,6 @@
 //NO RENDER OR INTERACTION HERE, JUST DATA AND RULES
 
 var GAME = null;
-var DECK = {};
 
 function Game()
 {
@@ -155,8 +154,4 @@ Card.prototype.toString = function()
 	return "CARD: ["+Card.TYPE_STR[this.type]+"]";
 }
 
-//ALL CARDS
-DECK.events = {
-	"death": { type: Card.TYPE_EVENT }
-};
 

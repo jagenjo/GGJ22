@@ -1,10 +1,9 @@
 //CORE class to handle different stages and resend events 
-
+//Not dependant of WebGL
 var CORE = {
 
 	stages: {},
 	default_stage: null,
-	active_stages: [],
 	current_stage: null,
 	files: {},
 
@@ -20,15 +19,43 @@ var CORE = {
 		for(var i in this.stages)
 			this.stages[i].init();
 			
-		this.changeToStage( this.default_stage );
+		this.changeToStage( "play" );
 		this.enableFileDrop();
+
+		this.start();
 	},
 
 	initGFX: function()
 	{
-		//create canvas or WebGL
+		//create canvas
+		this.canvas = document.querySelector("canvas");
+		this._on_mouse_bind = this.processMouse.bind(this);
+		this._on_key_bind = this.processKey.bind(this);
+		this.canvas.addEventListener("mousedown", this._on_mouse_bind );
+		this.canvas.addEventListener("mousemove", this._on_mouse_bind );
+		this.canvas.addEventListener("mouseup", this._on_mouse_bind );
+		this.canvas.addEventListener("mousewheel", this._on_mouse_bind );
+		document.body.addEventListener("keydown", this._on_key_bind );
+		document.body.addEventListener("keyup", this._on_key_bind );
 
-		//GFX.init();
+		GFX.init( this.canvas );
+	},
+
+	start: function()
+	{
+		var last = getTime();
+		function loop()
+		{
+			requestAnimationFrame( loop );
+			var now = getTime();
+			var dt = (now - last);
+			CORE.render();
+			CORE.update(dt);
+			last = now;
+		}
+
+		//main loop
+		loop();		
 	},
 
 	addStage: function( stage )
@@ -41,79 +68,63 @@ var CORE = {
 	
 	changeToStage: function( stage )
 	{
-		for(var i = 0; i < this.active_stages.length; ++i)
-		{
-			var active_stage = this.active_stages[i];
-			if( active_stage.onDisable )	
-				active_stage.onDisable();
-		}
-	
 		if(stage.constructor === String )
 			stage = this.stages[ stage ];
-		this.active_stages.length = 1;
-		this.active_stages[0] = stage;
+
+		if(stage == this.current_stage || !stage)
+			return;
+
+		if( this.current_stage && this.current_stage.onDisable )	
+			this.current_stage.onDisable();
+	
 		this.current_stage = stage;
 		
-		if(stage.onEnable)
-			stage.onEnable();
+		if(this.current_stage.onEnable)
+			this.current_stage.onEnable();
+	},
+
+	processMouse: function(e)
+	{
+		this.onmouse(e);
+		e.preventDefault();
+	},
+
+	processKey: function(e)
+	{
+		
 	},
 
 	//events to stages
 	onmouse: function(e)
 	{
-		for(var i = 0; i < this.active_stages.length; ++i)
-		{
-			if(this.active_stages[i].onmouse)
-				this.active_stages[i].onmouse(e);
-		}
-	},
-
-	onmousewheel: function(e)
-	{
-		for(var i = 0; i < this.active_stages.length; ++i)
-		{
-			if(this.active_stages[i].onmousewheel)
-				this.active_stages[i].onmousewheel(e);
-		}
+		if(this.current_stage.onmouse)
+			this.current_stage.onmouse(e);
 	},
 
 	onkeydown: function(e)
 	{
 		this.debugKeys(e);
-
-		for(var i = 0; i < this.active_stages.length; ++i)
-		{
-			if(this.active_stages[i].onkeydown)
-				this.active_stages[i].onkeydown(e);
-		}
+		if(this.current_stage.onkey)
+			this.current_stage.onkey(e);
 	},
 
 	render: function()
 	{
-		for(var i = 0; i < this.active_stages.length; ++i)
-		{
-			if(this.active_stages[i].render)
-				this.active_stages[i].render();
-		}
+		if(this.current_stage.render)
+			this.current_stage.render();
 	},
 
 	update: function(dt)
 	{
-		for(var i = 0; i < this.active_stages.length; ++i)
-		{
-			if(this.active_stages[i].update)
-				this.active_stages[i].update(dt);
-		}
+		if(this.current_stage && this.current_stage.update)
+			this.current_stage.update(dt);
 	},
 	
 	handleVisibilityChange: function(e)
 	{
 		//console.log("visibility!");
-		for(var i = 0; i < this.active_stages.length; ++i)
-		{
-			if(this.active_stages[i].onTabEnter)
-				this.active_stages[i].onTabEnter( !document.hidden );
-		}
+		if(this.current_stage.onTabEnter)
+			this.current_stage.onTabEnter( !document.hidden );
 	},
 
 	enableFileDrop: function()
@@ -170,11 +181,8 @@ var CORE = {
 
 	onFileDrop: function(file)
 	{
-		for(var i = 0; i < this.active_stages.length; ++i)
-		{
-			if(this.active_stages[i].onFileDrop)
-				this.active_stages[i].onFileDrop(file);
-		}
+		if( this.current_stage.onFileDrop)
+			this.current_stage.onFileDrop(file);
 	},
 
 	downloadFile: function( filename, data, dataType )
