@@ -13,6 +13,27 @@ var PLAYSTAGE = {
 		this.game.onCardDestroyed = GFX.renderer.onCardDestroyed.bind(this);
 	},
 
+	onEnter: function( prev_stage )
+	{
+		//return; //MUTE
+
+		if(!this.audio)
+		{
+			this.audio = new Audio();
+			this.audio.autoplay = true;
+			this.audio.loop = true;
+		}
+
+		if( prev_stage != CONFIRM_COUPLE_STAGE )
+			this.audio.src = "data/sounds/intro_piano.mp3";
+		this.audio.volume = 0.4;
+	},
+
+	onLeave: function()
+	{
+		
+	},
+
 	render: function()
 	{
 		var player = this.game.getCurrentPlayer();
@@ -48,7 +69,10 @@ var PLAYSTAGE = {
 				this.hover._hover = false;
 			this.hover = hover;
 			if (this.hover)
+			{
 				this.hover._hover = true;
+				GFX.playSound("data/sounds/bip.wav",0.3);
+			}
 		}
 	},
 
@@ -59,7 +83,7 @@ var PLAYSTAGE = {
 
 		if( e.type == "mousedown" )
 		{
-			if(	this.hover )
+			if(	this.hover && this.game.current_player == 0 )
 			{
 				if( this.hover.constructor == Card ) //highlight
 				{
@@ -85,6 +109,7 @@ var PLAYSTAGE = {
 			else if( this.selected )
 			{
 				GFX.renderer.highlightCard( this.selected, false );
+				this.selected = null;
 			}
 		}
 
@@ -162,6 +187,7 @@ var CONFIRM_COUPLE_STAGE = {
 				PLAYSTAGE.game.endTurn();
 				this.first_card = null;
 				this.second_card = null;
+				PLAYSTAGE.selected = null;
 				CORE.changeStage( PLAYSTAGE );
 			}
 			else if( isInsideRect( CORE.mouse, [gl.canvas.width * 0.6 - 128, gl.canvas.height * 0.75 - 32, 256, 64 ] ) )

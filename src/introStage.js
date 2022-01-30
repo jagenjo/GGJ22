@@ -3,6 +3,10 @@ var INTROSTAGE = {
 
 	init: function()
 	{
+	},
+
+	render: function()
+	{
 		
 	}
 };

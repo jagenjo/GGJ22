@@ -73,5 +73,14 @@ var GFX = {
 		gl.disable( gl.CULL_FACE );
 		gl.disable( gl.DEPTH_TEST );
 		gl.disable( gl.BLEND );
+	},
+
+	playSound: function( sound, volume )
+	{
+		var audio = new Audio();
+		audio.autoplay = true;
+		audio.src = sound;
+		audio.volume = volume || 0.4;
+		//audio.play();
 	}
 };

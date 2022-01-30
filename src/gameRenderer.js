@@ -35,7 +35,14 @@ function CardMaker( on_ready )
 	this._card_canvas = document.createElement("canvas");
 	this._temp_canvas = document.createElement("canvas");
 	getImage( "data/card_male.png" );
+	getImage( "data/card_male_back.png" );
 	getImage( "data/card_female.png" );
+	getImage( "data/card_female_back.png" );
+	getImage( "data/card_goal.png" );
+	getImage( "data/card_goal_back.png" );
+	getImage( "data/card_event.png" );
+	getImage( "data/card_event_back.png" );
+	getImage( "data/card_child_back.png" );
 	getImage( "data/FONDO.png" );
 	getImage( "data/PELOS detras.png" );
 	getImage( "data/CABEZA.png" );
@@ -43,6 +50,7 @@ function CardMaker( on_ready )
 	getImage( "data/PELOS.png" );
 	getImage( "data/ATREZZO.png" );
 	getImage( "data/iconosTraits.png" );
+	
 }
 
 CardMaker.prototype.buildCard = function( card, force )
@@ -85,8 +93,11 @@ CardMaker.prototype.buildCard = function( card, force )
 		case Card.TYPE_PERSON: background = getImage( card.gender == "F" ? "data/card_female.png" : "data/card_male.png" ); break;
 		case Card.TYPE_EVENT: background = getImage( "data/card_event.png" ); break;
 		case Card.TYPE_GOAL: background = getImage( "data/card_goal.png" ); break;
+		default: 
+			background = getImage( "data/card_child_back.png" ); break;
 	}
-	ctx.drawImage( background, 0,0 );
+	if(background)
+		ctx.drawImage( background, 0,0 );
 
 	if( card.type == Card.TYPE_PERSON )
 	{
@@ -111,13 +122,14 @@ CardMaker.prototype.buildCard = function( card, force )
 
 		//traits
 		var traits = getImage( "data/iconosTraits.png" );
-		/*
+		ctx.fillStyle = "black";
+		ctx.font = "12px Tahoma";
 		for(var i = 0; i < card.traits.length; ++i)
 		{
-			var trait = card.traits[i];
-			//ctx.drawImage( traits, 128, 32 );
+			var t = card.traits[i];
+			ctx.fillText( TRAIT.TYPE_STR[ t.type ] + ":" + t.level, 215, 20 + 20 * i );
+			ctx.drawImage( traits, (t.level - 1) * 32, t.type * 32,32,32, 124 + (i%2)*40, 40 + Math.floor(i/2)*32, 32,32 );
 		}
-		*/
 	}
 	else if( card.type == Card.TYPE_GOAL )
 	{
@@ -129,12 +141,18 @@ CardMaker.prototype.buildCard = function( card, force )
 	}
 
 	//text
-	ctx.fillStyle = "white";
-	ctx.font = "13px Tahoma";
-	ctx.fillText( card.name, 118,22 );
+	if(card.name)
+	{
+		ctx.fillStyle = "white";
+		ctx.font = "13px Tahoma";
+		ctx.fillText( card.name, 118,22 );
+	}
 
-	ctx.fillStyle = "#555";
-	ctx.fillText( card.id, 10,18 );
+	if(card.id)
+	{
+		ctx.fillStyle = "#555";
+		ctx.fillText( card.id, 10,18 );
+	}
 	
 	var final_image = card._image || new Image();
 	final_image.src = canvas.toDataURL();
@@ -171,8 +189,16 @@ function WebGLGameRenderer( canvas )
 
 	this.floor_node = new RD.SceneNode({ name: "floor", layer: 4, mesh:"planeXZ", texture: "data/table.png", scale:11.5 });
 	this.scene.root.addChild( this.floor_node );
-	this.bg_node = new RD.SceneNode({ name: "bg", layer: 4, mesh:"planeXZ", texture: "data/background.png", position: [0,-3,0],scale:50 });
+
+	var bgcolor = [0.3,0.3,0.3,1];
+	this.bg_node = new RD.SceneNode({ texture: "data/roots_1.png", position: [0,-14,0], color:bgcolor, scale:100, name:"bg", layer: 4, mesh:"planeXZ"});
 	this.scene.root.addChild( this.bg_node );
+	this.bg2_node = new RD.SceneNode({ texture: "data/roots_4.png", position: [0,-10,0], color:bgcolor, scale:80, name:"bg", layer: 4, mesh:"planeXZ"});
+	this.scene.root.addChild( this.bg2_node );
+	this.bg3_node = new RD.SceneNode({ texture: "data/roots_3.png", position: [0,-7,0], color:bgcolor, scale:50, name:"bg", layer: 4, mesh:"planeXZ"});
+	this.scene.root.addChild( this.bg3_node );
+	this.bg4_node = new RD.SceneNode({ texture: "data/roots_2.png", position: [0,-3,0], color:bgcolor, scale:30, name:"bg", layer: 4, mesh:"planeXZ"});
+	this.scene.root.addChild( this.bg4_node );
 
 	this.deckA_node = new RD.SceneNode({ name: "deck", layer: 4, mesh:"data/deck.obj", texture: "data/card_male_back.png", scale:0.5 });
 	this.deckA_node.flags.two_sided = true;
@@ -235,8 +261,8 @@ function WebGLGameRenderer( canvas )
 
 WebGLGameRenderer.prototype.createSlot = function( slot_pos, slot_info )
 {
-	var node = new RD.SceneNode({ position: slot_pos, name: slot_info.name, });
-	var node2 = new RD.SceneNode({ name: slot_info.name + "_2", color: [0.3,0.2,0.1,1], mesh: "planeXZ", texture: "data/card_marker.png" , scaling: this.card_size });
+	var node = new RD.SceneNode({ layers: 4, position: slot_pos, name: slot_info.name, });
+	var node2 = new RD.SceneNode({ layers: 4, name: slot_info.name + "_2", color: [0.3,0.2,0.1,1], mesh: "planeXZ", texture: "data/card_marker.png" , scaling: this.card_size });
 	node.addChild(node2);
 	node._card = slot_info;
 	node2._card = slot_info;
@@ -325,7 +351,7 @@ WebGLGameRenderer.prototype.preRender = function( game )
 	{
 		var player = game.players[i];
 
-		//render hand only player 1
+		//hand (only player 1)
 		if( i == 0 )
 		{
 			var num_cards = player.hand.length;
@@ -339,6 +365,15 @@ WebGLGameRenderer.prototype.preRender = function( game )
 				var scale = card._hover ? 1.1 : 1;
 				node.scaling = Math.lerp( scale, node.scaling[0], 0.9 );
 			}
+		}
+
+		//front line
+		var num_cards = player.frontline.length;
+		for(var j = 0; j < num_cards; ++j)
+		{
+			var card = player.frontline[j];
+			var node = this.getCardNode(card);
+			this.cardToSlot( card, i == 0 ? "couples_A" : "couples_B", j );
 		}
 	}
 

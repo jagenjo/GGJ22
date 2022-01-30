@@ -76,14 +76,15 @@ var CORE = {
 
 		if(stage == this.current_stage || !stage)
 			return;
+		var prev_stage = this.current_stage;
 
-		if( this.current_stage && this.current_stage.onDisable )	
-			this.current_stage.onDisable();
+		if( this.current_stage && this.current_stage.onLeave )	
+			this.current_stage.onLeave( stage );
 	
 		this.current_stage = stage;
 		
-		if(this.current_stage.onEnable)
-			this.current_stage.onEnable();
+		if(this.current_stage.onEnter)
+			this.current_stage.onEnter( prev_stage );
 	},
 
 	processMouse: function(e)

@@ -123,6 +123,16 @@ Game.prototype.fillStacks = function()
 	this.updateGoals(0);
 }
 
+Game.prototype.playIA = function()
+{
+	if(1) //in couples phase
+	{
+		var player = PLAYSTAGE.game.getCurrentPlayer();
+		player.addAction( "pair_cards", player.hand.random().id, this.cards.pool.random().id );
+		PLAYSTAGE.game.endTurn();
+	}
+}
+
 Game.prototype.endTurn = function()
 {
 	if(Game.verbose)
@@ -222,9 +232,9 @@ Game.prototype.generatePersonCard = function( gender )
 
 	const names_DB =
 	{
-		F: ["Maria", "Carmen", "Isabel", "Ana", "Laura", "Cristina", "Marta", "Pilar", "Emma", "Elizabeth", "Margaret", "Alice", "Sarah", "Bertha", "Mabel", "Bessie", "Yinuo", "Xinyi", "Zihan", "Yutong", "Xinyan", "Kexin", "Yuxi", "Mengyao", "Sunita", "Anita", "Gita", "Rekha", "Lakshmi", "Manju", "Shanti", "Usha"],
-		M: ["Antonio", "Jose", "Manuel", "Francisco", "Juan", "David", "Javier", "Pedro", "John", "William", "James", "Charles", "George", "Frank", "Thomas", "Henry", "Yichen", "Yuxuan", "Haouyu", "Zimo", "Yuhang", "Haoran", "Zihao", "Zizhuo", "Ram", "Mohammed", "Sri", "Santosh", "Sanjay", "Sunil", "Rajesh", "Ramesh"],
-		surnames: ["Perez", "Garcia", "Gonzalez", "Rodriguez", "Fernandez", "Martin", "Jimenez", "Ruiz", "Smith", "Johnson", "Brown", "Jones", "Miller", "Wilson", "Moore", "Walker", "Wang", "Li", "Zhang", "Liu", "Chen", "Yang", "Huang", "Zhao", "Devi", "Singh", "Kumar", "Das", "Kaur", "Ram", "Yadav", "Kumari"]
+		F: ["Maria", "Carmen", "Isabel", "Ana", "Laura", "Cristina", "Marta", "Pilar", "Emma", "Eliza", "Margret", "Alice", "Sarah", "Bertha", "Mabel", "Bessie", "Yinuo", "Xinyi", "Zihan", "Yutong", "Xinyan", "Kexin", "Yuxi", "Mengyao", "Sunita", "Anita", "Gita", "Rekha", "Lakshmi", "Manju", "Shanti", "Usha"],
+		M: ["Toni", "Jose", "Manuel", "Fran", "Juan", "David", "Javi", "Pedro", "John", "Will", "James", "Charles", "George", "Frank", "Thomas", "Henry", "Yichen", "Yuxuan", "Haouyu", "Zimo", "Yuhang", "Haoran", "Zihao", "Zizhuo", "Ram", "Moha", "Sri", "Santosh", "Sanjay", "Sunil", "Rajesh", "Ramesh"],
+		surnames: ["Perez", "Garcia", "Gonz.", "Rodr.", "Ferndz.", "Martin", "Jimnz.", "Ruiz", "Smith", "Johnson", "Brown", "Jones", "Miller", "Wilson", "Moore", "Walker", "Wang", "Li", "Zhang", "Liu", "Chen", "Yang", "Huang", "Zhao", "Devi", "Singh", "Kumar", "Das", "Kaur", "Ram", "Yadav", "Kumari"]
 	};
 
 	var card = new Card(this);
@@ -362,7 +372,7 @@ Game.prototype.toString = function()
 
 Game.prototype.toConsole = function()
 {
-	GAME.toString().split("\n").forEach( a=>console.log("%c " + a, "background-color: #EEE") );
+	GAME.toString().split("\n").forEach( a=>console.log("%c " + a, "color: #111; background-color: #EEE") );
 }
 
 //player state
@@ -473,6 +483,9 @@ Card.prototype.toString = function()
 	var str = "CARD "+this.id+": ["+Card.TYPE_STR[this.type]+"] ";
 	if(this.idc)
 		str += "'"+this.idc+"' ";
+	else if(this.name)
+		str += "'"+this.name+"' ";
+
 	if( this.type == Card.TYPE_PERSON )
 		for(var i = 0; i < this.traits.length; ++i)
 		{
