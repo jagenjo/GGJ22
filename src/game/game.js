@@ -172,8 +172,16 @@ Game.prototype.endTurn = function()
 
 		player.frontline = [];
 
-		// Dar carta de evento type=="I" a jugador y que haga lo que sea
-		// TO DO
+		// Dar carta de evento scope=="I" a jugador y que haga lo que sea
+		var indiviudal_events = [];
+		for (var i = 0; i < this.cards.mountEvents.length; ++i)
+		{
+			if (this.cards.mountEvents[i].scope == "I" && this.cards.mountEvents[i].phase == this.phase)
+			{
+				indiviudal_events.push(this.cards.mountEvents[i]);
+			}
+		}
+		this.getCurrentPlayer().offered_event_card = indiviudal_events.random();
 	}
 }
 
@@ -409,7 +417,23 @@ Game.prototype.mergeCards = function ( hand_id, pool_id )
 
 Game.prototype.applyEvent = function ( hand_id, event_id )
 {
-	// "boost" hand card according to event card (necesita stats la clase Card?)
+	var hand_card = this.getCurrentPlayer().hand.filter(card => card.id == hand_id)[0];
+	var event_card = this.cards.mountEvents.filter(card => card.id == event_id)[0];
+
+	for (power_type in event_card.power)
+	{
+		const power_idx = TRAIT.TYPE_STR.indexOf(power_type);
+		var traits = hand_card.traits.filter(trait => trait.type == power_idx);
+		if (traits.length == 0)
+		{
+			hand_card.traits.push({type: power_idx, level: event_card.power[power_type]});
+		}
+		else
+		{
+			hand_card.traits[hand_card.traits.indexOf(traits[0])].level += event_card.power[power_type];
+		}
+	}
+	hand_card._must_update = true;
 }
 
 Game.prototype.submitGoal = function ( hand_id, goal_id )
@@ -497,7 +521,7 @@ function Player(index)
 	this.frontline = [];
 	this.won = [];
 	this.score = 0;
-	this.offered_event_card_id = -1;
+	this.offered_event_card = null;
 
 	this.actions = [];
 
