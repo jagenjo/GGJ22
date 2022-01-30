@@ -7,7 +7,7 @@ var CORE = {
 	current_stage: null,
 	files: {},
 	
-	mouse: [],
+	mouse: [0,0],
 	buttons: 0,
 
 	init: function()

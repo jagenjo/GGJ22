@@ -67,7 +67,7 @@ var GFX = {
 
 	drawCard2D: function(card,x,y,scale)
 	{
-		var tex = card._texture;
+		var tex = this.renderer.getCardTexture(card);
 		if(!tex)
 			return;
 		var shader = gl.shaders["card_screen"];

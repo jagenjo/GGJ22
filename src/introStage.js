@@ -5,7 +5,7 @@ var INTROSTAGE = {
 	{
 		this.camera = new RD.Camera();
 		this.camera.perspective( 50, gl.canvas.width / gl.canvas.height, 0.1, 100 );
-		this.camera.lookAt([0,0,4],[0,0,0],[0,1,0]);
+		this.camera.lookAt([0,-0.1,2],[0,0,0],[0,1,0]);
 
 		this.scene = new RD.Scene();
 

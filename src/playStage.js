@@ -26,7 +26,7 @@ var PLAYSTAGE = {
 
 		if( prev_stage != CONFIRM_COUPLE_STAGE )
 			this.audio.src = "data/sounds/intro_piano.mp3";
-		this.audio.volume = 0.3;
+		this.audio.volume = 0.2;
 	},
 
 	onLeave: function(next_stage)
@@ -52,7 +52,26 @@ var PLAYSTAGE = {
 	renderUI: function()
 	{
 		gl.start2D();
-		GFX.drawTitle( this.game.current_player == 0 ? "haz pareja" : "juega la IA", gl.canvas.width * 0.5, 30 );
+		var title = "";
+		if( this.game.current_player == 0 )
+		{
+			if(this.game.players[0].offered_event_card)
+				title = "asigna evento";
+			else
+				title = "haz pareja";
+		}
+		else
+			title = "juega la IA";
+		if(title)
+			GFX.drawTitle( title, gl.canvas.width * 0.5, 30 );
+
+		//if event
+		//event card
+		if( this.game.current_player == 0 && this.game.players[0].offered_event_card )
+		{
+			GFX.drawCard2D( this.game.players[0].offered_event_card, gl.canvas.width * 0.5, 460, 2 );
+		}
+
 		if(this.hover && this.hover.constructor == Card )
 			GFX.drawCard2D( this.hover, gl.canvas.width * 0.5, 200, 2 );
 	},
@@ -65,7 +84,7 @@ var PLAYSTAGE = {
 			hover = hover._card;
 		else
 			hover = null;
-		gl.canvas.style.cursor = hover ? "pointer" : "";
+		gl.canvas.style.cursor = hover && hover._selectable ? "pointer" : "";
 
 		if(hover != this.hover)
 		{
@@ -75,7 +94,8 @@ var PLAYSTAGE = {
 			if (this.hover)
 			{
 				this.hover._hover = true;
-				GFX.playSound("data/sounds/bip.wav",0.3);
+				if( this.hover._selectable )
+					GFX.playSound("data/sounds/bip.wav",0.3);
 			}
 		}
 
@@ -90,20 +110,46 @@ var PLAYSTAGE = {
 	{
 		var camera = GFX.renderer.camera;
 		var ray = camera.getRay(e.offsetX, gl.canvas.height - e.offsetY, null, GFX.ray );
+		var game = this.game;
+		var in_event_mode = game.current_player == 0 && game.players[0].offered_event_card;
 
 		if( e.type == "mousedown" )
 		{
 			if(	this.hover && this.game.current_player == 0 )
 			{
-				if( this.hover.constructor == Card ) //highlight
+				if( this.hover.constructor == Card && this.hover._selectable )
 				{
-					if( this.selected && this.selected != this.hover )
+					if( in_event_mode ) //select card to apply event
 					{
-						CONFIRM_COUPLE_STAGE.first_card = this.selected;
-						CONFIRM_COUPLE_STAGE.second_card = this.hover;
-						GFX.renderer.highlightCard( this.hover, false );
-						this.hover = null;
-						CORE.changeStage( CONFIRM_COUPLE_STAGE );
+						game.applyEvent( this.hover.id, game.players[0].offered_event_card.id );
+					}
+					else if( this.selected && this.selected != this.hover )
+					{
+						//selecting a differnt one from your hand
+						if( this.selected._owner == this.hover._owner )
+						{
+							this.selected = this.hover;
+							GFX.renderer.highlightCard( this.hover, true );
+						}
+						else
+						{
+							CONFIRM_COUPLE_STAGE.first_card = this.selected;
+							CONFIRM_COUPLE_STAGE.second_card = this.hover;
+
+							//not from the same place
+							if( CONFIRM_COUPLE_STAGE.first_card._owner != CONFIRM_COUPLE_STAGE.second_card._owner )
+							{
+								GFX.renderer.highlightCard( this.hover, false );
+								this.hover = null;
+								CORE.changeStage( CONFIRM_COUPLE_STAGE );
+							}
+							else //same place, cancel
+							{
+								//playSound("cancel",0.3)
+								GFX.renderer.highlightCard( this.selected, false );
+								this.selected = null;
+							}
+						}
 					}
 					else
 					{
@@ -165,6 +211,8 @@ var CONFIRM_COUPLE_STAGE = {
 	first_card: null,
 	second_card: null,
 
+	AI_wait_ms: 1,
+
 	init: function()
 	{
 		/*
@@ -208,7 +256,18 @@ var CONFIRM_COUPLE_STAGE = {
 			{
 				//do action
 				var player = PLAYSTAGE.game.getCurrentPlayer();
-				player.addAction( "pair_cards", this.first_card.id, this.second_card.id );
+
+				//impossible couple
+				if( this.first_card._owner == this.second_card._owner ) 
+				{
+					CORE.changeStage( PLAYSTAGE );
+					return;
+				}
+
+				if( !this.second_card._owner )
+					player.addAction( "pair_cards", this.first_card.id, this.second_card.id );
+				else
+					player.addAction( "pair_cards", this.second_card.id, this.first_card.id );
 				PLAYSTAGE.game.endTurn();
 				this.first_card = null;
 				this.second_card = null;
@@ -217,7 +276,7 @@ var CONFIRM_COUPLE_STAGE = {
 				GFX.playSound("data/sounds/child.mp3",0.3);
 				setTimeout(function(){
 					PLAYSTAGE.must_play_AI = true;
-				},3000);
+				},this.AI_wait_ms);
 			}
 			else if( isInsideRect( CORE.mouse, [gl.canvas.width * 0.6 - 128, gl.canvas.height * 0.75 - 32, 256, 64 ] ) )
 			{

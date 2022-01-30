@@ -51,6 +51,7 @@ function CardMaker( on_ready )
 	getImage( "data/ATREZZO.png" );
 	getImage( "data/iconosObjetivos.png" );
 	getImage( "data/iconosTraits.png" );
+	getImage( "data/iconosEventos.png" );
 	
 }
 
@@ -132,7 +133,8 @@ CardMaker.prototype.buildCard = function( card, force )
 			var t = card.traits[i];
 			if( !t.level )
 				continue;
-			ctx.fillText( TRAIT.TYPE_STR[ t.type ] + ":" + t.level, 215, 20 + 20 * i );
+			var str = TRAIT.TYPE_STR[ t.type ] || "???";
+			ctx.fillText( str + ":" + t.level, 215, 20 + 20 * i );
 			ctx.drawImage( traits, (t.level - 1) * 32, t.type * 32,32,32, 124 + (index%2)*40, 40 + Math.floor(index/2)*32, 32,32 );
 			index++;
 		}
@@ -168,7 +170,24 @@ CardMaker.prototype.buildCard = function( card, force )
 	}
 	else if( card.type == Card.TYPE_EVENT )
 	{
-		
+		var events = getImage( "data/iconosEventos.png" );
+		ctx.fillStyle = "white";
+		ctx.font = "20px Tahoma";
+		var template = card._template;
+		var y = 50;
+		if (template.action)
+		{
+			ctx.fillText( template.action, 120, y );
+		}
+		else
+			for( var i in template.power)
+			{
+				var level = template.power[i];
+				ctx.fillText( i + (level > 0 ? " +" : " ") + template.power[i], 120, y );
+				y += 26;
+			}
+		if( template.icon )
+			ctx.drawImage( events, template.icon[0] * 128, template.icon[1] * 128, 128,128, 0,0, 128, 128 );
 	}
 
 	//text
@@ -391,13 +410,6 @@ WebGLGameRenderer.prototype.renderGame = function( game, player, settings )
 	
 	//render table
 	GFX.scene_renderer.render( this.scene, this.camera );
-
-	//if event
-	//event card
-	if( game.current_player == 0 && game.players[0].offered_event_card )
-	{
-		//GFX.game.players[0].offered_event_card
-	}
 }
 
 WebGLGameRenderer.prototype.preRender = function( game )
@@ -405,6 +417,7 @@ WebGLGameRenderer.prototype.preRender = function( game )
 	var size = this.card_size;
 
 	var current_player = game.getCurrentPlayer();
+	var in_event_mode = game.current_player == 0 && game.players[0].offered_event_card;
 	//iterate through all cards
 	for(var i = 0; i < game.players.length; ++i)
 	{
@@ -419,8 +432,12 @@ WebGLGameRenderer.prototype.preRender = function( game )
 				var card = player.hand[j];
 				var node = this.getCardNode(card);
 				var high = card._hover ? 0.2 : 0;
-				node.position = [j*(size[0]+0.1) - (num_cards-1)*0.5*size[0],4,8 + j * 0.01];
+				var pos = [j*(size[0]+0.1) - (num_cards-1)*0.5*size[0],4,8 + j * 0.01];
+				vec3.lerp( node.position, node.position, pos, 0.2 );
 				node.setEulerRotation(0,0,0.5);
+				//card._front_node.layers = 3;
+				card._lane = "hand";
+				card._selectable = true;
 				var scale = card._hover ? 1.1 : 1;
 				node.scaling = Math.lerp( scale, node.scaling[0], 0.9 );
 			}
@@ -431,7 +448,10 @@ WebGLGameRenderer.prototype.preRender = function( game )
 		for(var j = 0; j < num_cards; ++j)
 		{
 			var card = player.frontline[j];
+			card._lane = "front";
+			card._selectable = false;
 			var node = this.getCardNode(card);
+			//card._front_node.layers = 4;
 			this.cardToSlot( card, i == 0 ? "couples_A" : "couples_B", j );
 		}
 	}
@@ -440,6 +460,8 @@ WebGLGameRenderer.prototype.preRender = function( game )
 	for( var i = 0; i < 8; ++i)
 	{
 		var card = game.cards.pool[i];
+		card._selectable = in_event_mode ? false : true;
+
 		var slot = this.slots.table_pool[i];
 		if( card )
 		{
@@ -454,6 +476,7 @@ WebGLGameRenderer.prototype.preRender = function( game )
 	}
 
 	//couples
+	/*
 	for(var i = 0; i < this.slots.couples_A.length; ++i)
 	{
 		var slot = this.slots.couples_A[i];
@@ -464,11 +487,13 @@ WebGLGameRenderer.prototype.preRender = function( game )
 		var slot = this.slots.couples_B[i];
 		slot._node2.texture = slot._hover ? "data/card_marker_highlight.png" : "data/card_marker.png";
 	}
+	*/
 
 	//goals
 	for(var i = 0; i < game.cards.activeGoals.length; ++i)
 	{
 		var card = game.cards.activeGoals[i];
+		card._selectable = false;
 		var node = this.getCardNode(card);
 		this.cardToSlot( card,"goals", i );
 	}
