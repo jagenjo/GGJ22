@@ -6,19 +6,15 @@ var GFX = {
 		//create renderer
 		//this.renderer = new CanvasGameRenderer( this.canvas );
 		this.renderer = new WebGLGameRenderer( this.canvas );
+
+		this.ray = new RD.Ray();
 	},
 
-	renderGame: function( game, player, settings )
+	resizeBuffer: function()
 	{
 		var canvas = this.canvas;
 		canvas.width = document.body.offsetWidth;
 		canvas.height = document.body.offsetHeight;
 		gl.viewport(0,0,canvas.width,canvas.height);
-		//render background?
-
-		//show the game
-		this.renderer.renderGame( game, player, settings );
-
-		//render menus?
 	}
 };
