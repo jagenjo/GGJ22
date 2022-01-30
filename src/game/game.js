@@ -331,6 +331,7 @@ Game.prototype.pairCards = function ( hand_id, pool_id )
 		console.log(" + Pairing: " + hand_id + " with " + pool_id);
 	var new_card = this.mergeCards(hand_id, pool_id);
 	var player = this.getCurrentPlayer();
+	new_card._owner = player;
 	// Quitamos la carta que hemos emparejado de la mano del jugador
 	for (var i = 0; i < player.hand.length; ++i)
 	{
