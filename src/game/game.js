@@ -441,7 +441,7 @@ Game.prototype.applyEvent = function ( hand_id, event_id )
 			var ret = b.level - a.level;
 			return ret != 0 ? ret : [-1,1].random();
 		});
-		
+
 		var MAX_TRAITS = 4;
 		if (hand_card.traits.length > MAX_TRAITS)
 			hand_card.traits.splice(MAX_TRAITS, hand_card.traits.length - MAX_TRAITS);
@@ -483,6 +483,8 @@ Game.prototype.submitGoal = function ( hand_id, goal_id )
 			}
 		}
 		player.won.push(goal_card);
+		if( this.onCardDestroyed )
+			this.onCardDestroyed( player, "goal", goal_card );
 		// Sumamos la puntuación del jugador
 		for (var i = 0; i < player.hand.length; ++i)
 		{
