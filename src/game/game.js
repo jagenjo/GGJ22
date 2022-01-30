@@ -459,7 +459,7 @@ Game.prototype.submitGoal = function ( hand_id, goal_id )
 	if(Game.verbose)
 		console.log(" + Submit goals: " +  hand_id + " -> " + goal_id );
 
-	var goal_card = this.getGoalCard( goal_id );
+	var goal_card = this.cards.activeGoals.filter(card => card.id == goal_id)[0];
 	var player = this.getCurrentPlayer();
 	
 	// Si cumple el goal, quitamos la carta de objetivo de la pila de cartas de objetivo activas y la sustituimos por otra del mazo
