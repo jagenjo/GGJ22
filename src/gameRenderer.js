@@ -49,6 +49,7 @@ function CardMaker( on_ready )
 	getImage( "data/CARA.png" );
 	getImage( "data/PELOS.png" );
 	getImage( "data/ATREZZO.png" );
+	getImage( "data/iconosObjetivos.png" );
 	getImage( "data/iconosTraits.png" );
 	
 }
@@ -81,6 +82,7 @@ CardMaker.prototype.buildCard = function( card, force )
 	var ctx = canvas.getContext("2d");
 	ctx.imageSmoothingEnabled = false;
 	ctx.clearRect(0,0,canvas.width,canvas.height);
+	ctx.textAlign = "left";
 
 	var ctx_temp = canvas.getContext("2d");
 	ctx_temp.imageSmoothingEnabled = false;
@@ -124,16 +126,45 @@ CardMaker.prototype.buildCard = function( card, force )
 		var traits = getImage( "data/iconosTraits.png" );
 		ctx.fillStyle = "black";
 		ctx.font = "12px Tahoma";
+		var index = 0;
 		for(var i = 0; i < card.traits.length; ++i)
 		{
 			var t = card.traits[i];
+			if( !t.level )
+				continue;
 			ctx.fillText( TRAIT.TYPE_STR[ t.type ] + ":" + t.level, 215, 20 + 20 * i );
-			ctx.drawImage( traits, (t.level - 1) * 32, t.type * 32,32,32, 124 + (i%2)*40, 40 + Math.floor(i/2)*32, 32,32 );
+			ctx.drawImage( traits, (t.level - 1) * 32, t.type * 32,32,32, 124 + (index%2)*40, 40 + Math.floor(index/2)*32, 32,32 );
+			index++;
 		}
 	}
 	else if( card.type == Card.TYPE_GOAL )
 	{
-		
+		var traits = getImage( "data/iconosTraits.png" );
+		var goals = getImage( "data/iconosObjetivos.png" );
+		//score: 1, requisites: {ATH: 3}
+		var index = 0;
+		if(card._template)
+		{
+			for(var i in card._template.requisites)
+			{
+				var level = card._template.requisites[i];
+				if( !level )
+					continue;
+				var type = TRAIT.TYPES[i];
+				//ctx.fillText( TRAIT.TYPE_STR[ t.type ] + ":" + t.level, 215, 20 + 20 * i );
+				ctx.drawImage( traits, (level - 1) * 32, type * 32,32,32, 110 + (index%2)*60, 16 + Math.floor(index/2)*60, 60,60 );
+				index++;
+			}
+
+			if( card._template.icon )
+				ctx.drawImage( goals, card._template.icon[0] * 128, card._template.icon[1] * 128, 128,128, 0,0, 128, 128 );
+
+			ctx.fillStyle = "white";
+			ctx.font = "24px Tahoma";
+			ctx.textAlign = "center";
+			ctx.fillText( card._template.score, 224,110 );
+			ctx.textAlign = "left";
+		}
 	}
 	else if( card.type == Card.TYPE_EVENT )
 	{
@@ -166,8 +197,6 @@ CardMaker.prototype.buildCard = function( card, force )
 function WebGLGameRenderer( canvas )
 {
 	this.canvas = canvas;
-	this.gl = GL.create( {canvas: canvas });
-	enableWebGLCanvas( canvas );
 
 	this.card_size = [2,2,1];
 	this.hover_card_size = [2.2,2.2,1.2];
@@ -179,11 +208,6 @@ function WebGLGameRenderer( canvas )
 	this.hard_camera = new RD.Camera();
 	this.hard_camera.lookAt([0,10,10],[0,0,0],[0,1,0]);
 	this.hard_camera.perspective( 60, 1, 0.1,100);
-
-	this.scene_renderer = new RD.Renderer( this.gl );
-	this.scene_renderer.loadShaders("data/shaders.txt");
-	this.scene_renderer.default_texture_settings.minFilter = GL.NEAREST;
-	this.scene_renderer.default_texture_settings.magFilter = GL.NEAREST;
 
 	this.scene = new RD.Scene();
 
@@ -330,7 +354,8 @@ WebGLGameRenderer.prototype.cardToSlot = function( card, type, index )
 
 	if(target)
 	{
-		node.position = target._node.position;
+		vec3.lerp( node.position, node.position, target._node.position, 0.1 );
+		//node.position = target._node.position;
 		node.rotation = target._node.rotation;
 		node.move([0,0.03,0]);
 	}
@@ -359,7 +384,7 @@ WebGLGameRenderer.prototype.renderGame = function( game, player, settings )
 	gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT );
 	
 	//render table
-	this.scene_renderer.render( this.scene, this.camera );
+	GFX.scene_renderer.render( this.scene, this.camera );
 
 	//render hand
 	//this.renderCards( player.hand );
@@ -485,6 +510,7 @@ WebGLGameRenderer.prototype.getCardNode = function(card)
 	if(!card._node) //create
 	{
 		card._node = new RD.SceneNode(); //use pool?
+		card._node.position = [0,20 + Math.random() * 20,0];
 		//card._node.scaling = this.card_size;
 		this.cards_node.addChild( card._node );
 
@@ -606,6 +632,6 @@ WebGLGameRenderer.prototype.renderCard = function( card, model )
 	gl.disable( gl.CULL_FACE );
 	var aspect = tex.width / tex.height;
 	mat4.scale(model, model, [2,2*aspect,2] );
-	this.scene_renderer.renderMesh( model, mesh, tex, null, shader );
+	GFX.scene_renderer.renderMesh( model, mesh, tex, null, shader );
 }
 */

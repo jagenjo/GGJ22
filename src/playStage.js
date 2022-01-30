@@ -74,6 +74,12 @@ var PLAYSTAGE = {
 				GFX.playSound("data/sounds/bip.wav",0.3);
 			}
 		}
+
+		if( this.game.current_player != 0 ) //AI TURN
+		{
+			if( this.must_play_AI )
+				this.playAI();
+		}
 	},
 
 	onmouse: function(e)
@@ -83,7 +89,7 @@ var PLAYSTAGE = {
 
 		if( e.type == "mousedown" )
 		{
-			if(	this.hover ) //&& this.game.current_player == 0 )
+			if(	this.hover && this.game.current_player == 0 )
 			{
 				if( this.hover.constructor == Card ) //highlight
 				{
@@ -123,6 +129,18 @@ var PLAYSTAGE = {
 	onkey: function(e)
 	{
 		
+	},
+
+	playAI: function()
+	{
+		if(1) //in couples phase
+		{
+			var player = this.game.getCurrentPlayer();
+			player.addAction( "pair_cards", player.hand.random().id, this.game.cards.pool.random().id );
+			this.game.endTurn();
+		}
+
+		this.must_play_AI = false;
 	}
 };
 
@@ -189,6 +207,10 @@ var CONFIRM_COUPLE_STAGE = {
 				this.second_card = null;
 				PLAYSTAGE.selected = null;
 				CORE.changeStage( PLAYSTAGE );
+				GFX.playSound("data/sounds/child.mp3",0.3);
+				setTimeout(function(){
+					PLAYSTAGE.must_play_AI = true;
+				},1500);
 			}
 			else if( isInsideRect( CORE.mouse, [gl.canvas.width * 0.6 - 128, gl.canvas.height * 0.75 - 32, 256, 64 ] ) )
 			{

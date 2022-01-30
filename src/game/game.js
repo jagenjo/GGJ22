@@ -130,16 +130,6 @@ Game.prototype.fillStacks = function()
 	this.updateGoals(0);
 }
 
-Game.prototype.playIA = function()
-{
-	if(1) //in couples phase
-	{
-		var player = PLAYSTAGE.game.getCurrentPlayer();
-		player.addAction( "pair_cards", player.hand.random().id, this.cards.pool.random().id );
-		PLAYSTAGE.game.endTurn();
-	}
-}
-
 Game.prototype.endTurn = function()
 {
 	if(Game.verbose)

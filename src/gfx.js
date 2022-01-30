@@ -5,8 +5,16 @@ var GFX = {
 		this.canvas = canvas;
 		//create renderer
 		//this.renderer = new CanvasGameRenderer( this.canvas );
+		this.gl = GL.create( {canvas: canvas });
+		enableWebGLCanvas( canvas );
+		gl.imageSmoothingEnabled = false;
 		this.renderer = new WebGLGameRenderer( this.canvas );
 		enableWebGLCanvas( this.canvas, { magFilter: GL.NEAREST, minFilter: GL.NEAREST } );
+
+		this.scene_renderer = new RD.Renderer( this.gl );
+		this.scene_renderer.loadShaders("data/shaders.txt");
+		this.scene_renderer.default_texture_settings.minFilter = GL.NEAREST;
+		this.scene_renderer.default_texture_settings.magFilter = GL.NEAREST;
 
 		this.ray = new RD.Ray();
 	},

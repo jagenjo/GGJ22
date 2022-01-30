@@ -22,7 +22,7 @@ var CORE = {
 		for(var i in this.stages)
 			this.stages[i].init();
 			
-		this.changeStage( "play" );
+		this.changeStage( "intro" );
 		this.enableFileDrop();
 
 		this.start();
