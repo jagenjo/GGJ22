@@ -187,12 +187,17 @@ Game.prototype.demoGame = function()
 
 Game.prototype.generatePersonCard = function( gender )
 {
-	const names_DB = { F: ["Laura", "Julia", "Miriam"], M: ["Antonio", "Marc", "Pablo"] };
+	const names_DB =
+	{
+		F: ["Maria", "Carmen", "Isabel", "Ana", "Laura", "Cristina", "Marta", "Pilar", "Emma", "Elizabeth", "Margaret", "Alice", "Sarah", "Bertha", "Mabel", "Bessie", "Yinuo", "Xinyi", "Zihan", "Yutong", "Xinyan", "Kexin", "Yuxi", "Mengyao", "Sunita", "Anita", "Gita", "Rekha", "Lakshmi", "Manju", "Shanti", "Usha"],
+		M: ["Antonio", "Jose", "Manuel", "Francisco", "Juan", "David", "Javier", "Pedro", "John", "William", "James", "Charles", "George", "Frank", "Thomas", "Henry", "Yichen", "Yuxuan", "Haouyu", "Zimo", "Yuhang", "Haoran", "Zihao", "Zizhuo", "Ram", "Mohammed", "Sri", "Santosh", "Sanjay", "Sunil", "Rajesh", "Ramesh"],
+		surnames: ["Perez", "Garcia", "Gonzalez", "Rodriguez", "Fernandez", "Martin", "Jimenez", "Ruiz", "Smith", "Johnson", "Brown", "Jones", "Miller", "Wilson", "Moore", "Walker", "Wang", "Li", "Zhang", "Liu", "Chen", "Yang", "Huang", "Zhao", "Devi", "Singh", "Kumar", "Das", "Kaur", "Ram", "Yadav", "Kumari"]
+	};
 	const trait_DB = { positive: ["Deportista", "Culto", "Lider"], negative: ["Timido", "Torpe", "Egoista"] };
 
 	var card = new Card(this);
 	card.type = Card.TYPE_PERSON;
-	card.name = names_DB[gender].random();
+	card.name = names_DB[gender].random() + " " + names_DB[surnames].random();
 	card.gender = gender;
 	// card.visuals...
 	card.traits.push(trait_DB.positive.random());
