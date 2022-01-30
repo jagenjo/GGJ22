@@ -22,7 +22,7 @@ function Game()
 	GAME = this;
 	this.players = []; //leave it as array to have the possibility to have more than two players
 	this.turn = 0;
-	this.era = 0;
+	this.phase = 0;
 	this.cards = {
 		persons: { F: [], M: []},
 		pool: [],
@@ -59,7 +59,7 @@ Game.prototype.init = function()
 Game.prototype.fillStacks = function()
 {
 	// Rellenar los montones del game a partir del mazo
-	const N_PERSON_CARDS = 16; // Multiple de 2
+	const N_PERSON_CARDS = 64; // Multiple de 2
 	for (const gender of ["F", "M"])
 	{
 		for (var i = 0; i < N_PERSON_CARDS / 2; ++i)
@@ -112,30 +112,23 @@ Game.prototype.fillStacks = function()
 	}
 
 	//rellenar los objetivos de la mesa
-	const N_ACTIVE_GOALS = 3;
-	for (var i = 0; i < N_ACTIVE_GOALS; ++i)
-	{
-		var card = this.cards.mountGoals.randomPop();
-		this.cards.activeGoals.push(card);
-	}
+	this.updateGoals(0);
 }
 
 Game.prototype.endTurn = function()
 {
-	//evaluate results
-		//create child cards
-		//
-	
+	var player = this.getCurrentPlayer();
+
 	// Ejecutamos las acciones pendientes del jugador actual
-	for (var i = 0; i = getCurrentPlayer().actions.length; ++i)
+	for (var i = 0; i = player.actions.length; ++i)
 	{
-		getCurrentPlayer().actions[i].execute();
+		player.actions[i].execute();
 	}
 
 	// El turno pasa al siguiente jugador
 	current_player = (current_player+1) % 2;
 	// Si no le quedan cartas en la mano, es que se ha terminado la ronda y debemos empezar una nueva
-	if (getCurrentPlayer().hand.length == 0)
+	if (this.getCurrentPlayer().hand.length == 0)
 	{
 		++this.turn;
 		if (this.turn % 3 == 0)
@@ -152,23 +145,37 @@ Game.prototype.endTurn = function()
 				this.players[i].hand.push(this.players[i].frontline[j]);
 			}
 			this.players[i].frontline = [];
-			// Dar carta de evento a jugador y que haga lo que sea
+			// Dar carta de evento type=="I" a jugador y que haga lo que sea
 		}
 	}
 }
 
-Game.prototype.startEra = function()
+Game.prototype.startPhase = function()
 {
-	++this.era;
+	++this.phase;
 	// Cambiamos las cartas de objetivo de la mesa descartando las previas
+	this.updateGoals(this.phase);
+	// Evento global
+}
+
+Game.prototype.updateGoals = function( phase )
+{
 	this.cards.activeGoals = [];
+	var phase_goals = [];
+	for (var i = 0; i < this.cards.mountGoals.length; ++i)
+	{
+		if (this.cards.mountGoals[i].phase == phase)
+		{
+			phase_goals.push(this.cards.mountGoals[i]);
+		}
+	}
+
 	const N_ACTIVE_GOALS = 3;
 	for (var i = 0; i < N_ACTIVE_GOALS; ++i)
 	{
-		var card = this.cards.mountGoals.randomPop();
+		var card = phase_goals.randomPop();
 		this.cards.activeGoals.push(card);
 	}
-	// Evento global
 }
 
 Game.prototype.getCurrentPlayer = function()
@@ -193,22 +200,31 @@ Game.prototype.generatePersonCard = function( gender )
 		M: ["Antonio", "Jose", "Manuel", "Francisco", "Juan", "David", "Javier", "Pedro", "John", "William", "James", "Charles", "George", "Frank", "Thomas", "Henry", "Yichen", "Yuxuan", "Haouyu", "Zimo", "Yuhang", "Haoran", "Zihao", "Zizhuo", "Ram", "Mohammed", "Sri", "Santosh", "Sanjay", "Sunil", "Rajesh", "Ramesh"],
 		surnames: ["Perez", "Garcia", "Gonzalez", "Rodriguez", "Fernandez", "Martin", "Jimenez", "Ruiz", "Smith", "Johnson", "Brown", "Jones", "Miller", "Wilson", "Moore", "Walker", "Wang", "Li", "Zhang", "Liu", "Chen", "Yang", "Huang", "Zhao", "Devi", "Singh", "Kumar", "Das", "Kaur", "Ram", "Yadav", "Kumari"]
 	};
-	const trait_DB = { positive: ["Deportista", "Culto", "Lider"], negative: ["Timido", "Torpe", "Egoista"] };
 
 	var card = new Card(this);
 	card.type = Card.TYPE_PERSON;
 	card.name = names_DB[gender].random() + " " + names_DB.surnames.random();
 	card.gender = gender;
 	// card.visuals...
-	card.traits.push(trait_DB.positive.random());
-	card.traits.push(trait_DB.negative.random());
+	// Asignamos traits
+	var tmp_traits = [];
+	for (var i = 0; i < TRAIT.N_TRAIT_TYPES; ++i)
+	{
+		tmp_traits.push(i);
+	}
+
+	var n_traits = [1,2].random();
+	for (var i = 0; i < n_traits; ++i)
+	{
+		card.traits.push({type: tmp_traits.randomPop(), level: [1,2].random()});
+	}
 	return card;
 }
 
 Game.prototype.pairCards = function ( hand_id, pool_id )
 {
-	var new_card = mergeCards(hand, pool);
-	var player = getCurrentPlayer();
+	var new_card = this.mergeCards(hand_id, pool_id);
+	var player = this.getCurrentPlayer();
 	// Quitamos la carta que hemos emparejado de la mano del jugador
 	for (var i = 0; i < player.hand.length; ++i)
 	{
@@ -224,7 +240,7 @@ Game.prototype.pairCards = function ( hand_id, pool_id )
 		if (this.cards.pool[i].id == pool_id)
 		{
 			// Además, suplimos el hueco que queda en la pool con una carta más del mazo del género que se acabe de sacar
-			this.cards.pool[i] = game.cards.persons[this.cards.pool[i].gender].randomPop();
+			this.cards.pool[i] = this.cards.persons[this.cards.pool[i].gender].randomPop();
 			break;
 		}
 	}
@@ -248,7 +264,7 @@ Game.prototype.applyEvent = function ( hand_id, event_id )
 Game.prototype.submitGoal = function ( hand_id, goal_id )
 {
 	var goal_card;
-	var player = getCurrentPlayer();
+	var player = this.getCurrentPlayer();
 	// Quitamos la carta de objetivo de la pila de cartas de objetivo activas y la sustituimos por otra del mazo
 	// Ademas, la añadimos al mazo de cartas ganadas del jugador
 	for (var i = 0; i < this.cards.activeGoals.length; ++i)
@@ -342,6 +358,10 @@ function Card( game )
 	this.gender = "";
 	this.visuals = {};
 	this.traits = [];
+	this.scope = "";
+	this.phase = -1;
+	this.power = {};
+	this.requisites = {};
 
 	this._owner = null;
 	this._game = null;
@@ -361,12 +381,16 @@ Card.prototype.toJSON = function()
 
 Card.prototype.fromJSON = function(json)
 {
-	this.id = json.id || this.id;
-	this.type = json.type || this.type;
-	this.name = json.name || this.name;
-	this.gender = json.gender || this.gender;
-	this.visuals = json.visuals || this.visuals;
-	this.traits = json.traits || this.traits;
+	if (json.id!=undefined) this.id = json.id;
+	if (json.type!=undefined) this.type = json.type;
+	if (json.name!=undefined) this.name = json.name;
+	if (json.gender!=undefined) this.gender = json.gender;
+	if (json.visuals!=undefined) this.visuals = json.visuals;
+	if (json.traits!=undefined) this.traits = json.traits;
+	if (json.scope!=undefined) this.scope = json.scope;
+	if (json.phase!=undefined) this.phase = json.phase;
+	if (json.power!=undefined) this.power = json.power;
+	if (json.requisites!=undefined) this.requisites = json.requisites;
 }
 
 Card.prototype.toString = function()
@@ -408,6 +432,7 @@ Action.prototype.fromJSON = function(json)
 	this.hand_card = json.hand_card_id;
 	this.secondary_card = json.pool_card_id || json.event_card_id || json.goal_card_id || -1;
 	this._owner = GAME.players[Math.min(json.player_index, GAME.players.length-1)];
+	this._game = GAME;
 }
 
 Action.prototype.execute = function()
