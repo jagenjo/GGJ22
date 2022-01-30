@@ -197,7 +197,7 @@ Game.prototype.generatePersonCard = function( gender )
 
 	var card = new Card(this);
 	card.type = Card.TYPE_PERSON;
-	card.name = names_DB[gender].random() + " " + names_DB[surnames].random();
+	card.name = names_DB[gender].random() + " " + names_DB.surnames.random();
 	card.gender = gender;
 	// card.visuals...
 	card.traits.push(trait_DB.positive.random());
