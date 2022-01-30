@@ -173,7 +173,7 @@ Game.prototype.endTurn = function()
 	// Nueva ronda, las cartas en frontline de ambos players se hacen adultas y pasan a la mano
 	for (var i = 0; i < this.players.length; ++i)
 	{
-		player = this.players;
+		player = this.players[i];
 		for (var j = 0; j < player.frontline.length; ++j )
 		{
 			//this.players[i].frontline[j].growUp();
@@ -250,6 +250,42 @@ Game.prototype.getPoolCard = function( card_id )
 	
 	if(Game.verbose)
 		console.log("Error: Card " + card_id + " doesn't exist in game pool.");
+}
+
+Game.prototype.isGoalValid = function( hand_id, goal_id )
+{
+	var requisites_met = 0;
+	var n_requisites = 0;
+	var hand_card = this.getCurrentPlayerCardInHand(hand_id);
+	var goal_card = this.getActiveGoalCard(goal_id);
+	for (requisite_type in goal_card.requisites)
+	{
+		++n_requisites;
+		for (var i = 0; i < hand_card.traits.length; ++i)
+		{
+			var trait = hand_card.traits[i];
+			if (TRAIT.TYPE_STR[trait.type] == requisite_type && trait.level >= goal_card.requisites[requisite_type])
+			{
+				++requisites_met;
+				break;
+			}
+		}
+	}
+	return requisites_met == n_requisites;
+}
+
+Game.prototype.getActiveGoalCard = function( card_id )
+{
+	for (var i = 0; i < this.cards.activeGoals.length; ++i)
+	{
+		if (this.cards.activeGoals[i].id == card_id)
+		{
+			return this.cards.activeGoals[i];
+		}
+	}
+	
+	if(Game.verbose)
+		console.log("Error: Card " + card_id + " doesn't exist as a current active goal.");
 }
 
 Game.prototype.demoGame = function()
@@ -392,27 +428,38 @@ Game.prototype.submitGoal = function ( hand_id, goal_id )
 	if(Game.verbose)
 		console.log(" + Submit goals: " +  hand_id + " -> " + goal_id );
 
-	var goal_card;
+	var goal_card = this.getGoalCard( goal_id );
 	var player = this.getCurrentPlayer();
-	// Quitamos la carta de objetivo de la pila de cartas de objetivo activas y la sustituimos por otra del mazo
+	
+	// Si cumple el goal, quitamos la carta de objetivo de la pila de cartas de objetivo activas y la sustituimos por otra del mazo
 	// Ademas, la añadimos al mazo de cartas ganadas del jugador
-	for (var i = 0; i < this.cards.activeGoals.length; ++i)
+	if (this.isGoalValid(hand_id, goal_id))
 	{
-		if (this.activeGoals[i].id == goal_id)
+		var phase_goals = [];
+		for (var i = 0; i < this.cards.mountGoals.length; ++i)
 		{
-			goal_card = this.activeGoals[i];
-			this.activeGoals[i] = this.mountGoals.randomPop();
-			player.won.push(goal_card);
-			break;
+			if (this.cards.mountGoals[i].phase == this.phase)
+			{
+				phase_goals.push(this.cards.mountGoals[i]);
+			}
 		}
-	}
-	// Le añadimos el logro a la carta que consigue el objetivo y sumamos la puntuación del jugador
-	for (var i = 0; i < player.hand.length; ++i)
-	{
-		if (player.hand[i].id == hand_id)
+		for (var i = 0; i < this.cards.activeGoals.length; ++i)
 		{
-			//player.score += goal_card.score;
-			break;
+			if (this.cards.activeGoals[i].id == goal_card.id)
+			{
+				this.cards.activeGoals[i] = phase_goals.random();
+				break;
+			}
+		}
+		player.won.push(goal_card);
+		// Sumamos la puntuación del jugador
+		for (var i = 0; i < player.hand.length; ++i)
+		{
+			if (player.hand[i].id == hand_id)
+			{
+				player.score += goal_card.score;
+				break;
+			}
 		}
 	}
 }
@@ -522,6 +569,7 @@ function Card( game )
 	this.phase = -1;
 	this.power = {};
 	this.requisites = {};
+	this.score = -1;
 	this.slot = -1;
 
 	this._owner = null;
@@ -553,6 +601,7 @@ Card.prototype.fromJSON = function(json)
 	if (json.phase!=undefined) this.phase = json.phase;
 	if (json.power!=undefined) this.power = json.power;
 	if (json.requisites!=undefined) this.requisites = json.requisites;
+	if (json.score!=undefined) this.score = json.score;
 }
 
 Card.prototype.toString = function()
