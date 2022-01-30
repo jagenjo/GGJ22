@@ -156,7 +156,7 @@ Game.prototype.endTurn = function()
 	++this.turn;
 	if (this.turn % 3 == 0)
 	{
-		this.startEra();
+		this.startPhase();
 	}
 
 	// Nueva ronda, las cartas en frontline de ambos players se hacen adultas y pasan a la mano
@@ -435,7 +435,7 @@ Game.prototype.applyEvent = function ( hand_id, event_id )
 			hand_card.traits[hand_card.traits.indexOf(traits[0])].level += event_card.power[power_type];
 			console.log(" + Updating Trait " + power_type + " of level " + event_card.power[power_type] + " to card " + hand_id);
 		}
-		hand_card.traits.filter(trait => trait.level > 0);
+		hand_card.traits = hand_card.traits.filter(trait => trait.level > 0);
 	}
 	hand_card._must_update = true;
 	
