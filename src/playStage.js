@@ -10,7 +10,7 @@ var PLAYSTAGE = {
 	{
 		this.game = new Game();
 		this.game.init();
-		this.game.onCardDestroyed = GFX.renderer.onCardDestroyed.bind(this);
+		this.game.onCardDestroyed = GFX.renderer.onCardDestroyed.bind(GFX.renderer);
 	},
 
 	onEnter: function( prev_stage )
@@ -26,12 +26,16 @@ var PLAYSTAGE = {
 
 		if( prev_stage != CONFIRM_COUPLE_STAGE )
 			this.audio.src = "data/sounds/intro_piano.mp3";
-		this.audio.volume = 0.4;
+		this.audio.volume = 0.3;
 	},
 
-	onLeave: function()
+	onLeave: function(next_stage)
 	{
-		
+		if( next_stage == INTROSTAGE )
+		{
+			if(!this.audio.paused)
+				this.audio.pause();
+		}
 	},
 
 	render: function()
@@ -128,7 +132,10 @@ var PLAYSTAGE = {
 
 	onkey: function(e)
 	{
-		
+		if(e.type != "keydown")
+			return;
+		if(e.code == "Escape")
+			CORE.changeStage( INTROSTAGE );
 	},
 
 	playAI: function()
@@ -210,7 +217,7 @@ var CONFIRM_COUPLE_STAGE = {
 				GFX.playSound("data/sounds/child.mp3",0.3);
 				setTimeout(function(){
 					PLAYSTAGE.must_play_AI = true;
-				},1500);
+				},3000);
 			}
 			else if( isInsideRect( CORE.mouse, [gl.canvas.width * 0.6 - 128, gl.canvas.height * 0.75 - 32, 256, 64 ] ) )
 			{
@@ -224,6 +231,9 @@ var CONFIRM_COUPLE_STAGE = {
 
 	onkey: function(e)
 	{
+		if(e.type != "keydown")
+			return;
+
 		if(e.code == "Escape")
 			CORE.changeStage( PLAYSTAGE );
 	}

@@ -33,6 +33,12 @@ var INTROSTAGE = {
 		this.audio.volume = 0.4;
 	},
 
+	onLeave: function()
+	{
+		if(!this.audio.paused)
+			this.audio.pause();
+	},
+
 	render: function()
 	{
 		GFX.resizeBuffer();

@@ -95,7 +95,7 @@ var CORE = {
 
 	processKey: function(e)
 	{
-		
+		this.onkey(e);
 	},
 
 	//events to stages
@@ -109,7 +109,7 @@ var CORE = {
 			this.current_stage.onmouse(e);
 	},
 
-	onkeydown: function(e)
+	onkey: function(e)
 	{
 		this.debugKeys(e);
 		if(this.current_stage.onkey)

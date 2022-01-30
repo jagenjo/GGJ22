@@ -351,12 +351,18 @@ WebGLGameRenderer.prototype.cardToSlot = function( card, type, index )
 	{
 		target = this.slots.goals[index];
 	}
+	else
+	{
+		target = this.floor_node;
+	}
 
 	if(target)
 	{
-		vec3.lerp( node.position, node.position, target._node.position, 0.1 );
-		//node.position = target._node.position;
-		node.rotation = target._node.rotation;
+		var target_node = target.constructor === RD.SceneNode ? target : target._node;
+
+		vec3.lerp( node.position, node.position, target_node.position, 0.1 );
+		//node.position = target_node.position;
+		node.rotation = target_node.rotation;
 		node.move([0,0.03,0]);
 	}
 }
@@ -380,19 +386,25 @@ WebGLGameRenderer.prototype.renderGame = function( game, player, settings )
 	this.preRender(game);
 
 	//clear
-	gl.clearColor(0.2,0.2,0.2,1);
+	gl.clearColor(0.1,0.1,0.1,1);
 	gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT );
 	
 	//render table
 	GFX.scene_renderer.render( this.scene, this.camera );
 
-	//render hand
-	//this.renderCards( player.hand );
+	//if event
+	//event card
+	if( game.current_player == 0 && game.players[0].offered_event_card )
+	{
+		//GFX.game.players[0].offered_event_card
+	}
 }
 
 WebGLGameRenderer.prototype.preRender = function( game )
 {
 	var size = this.card_size;
+
+	var current_player = game.getCurrentPlayer();
 	//iterate through all cards
 	for(var i = 0; i < game.players.length; ++i)
 	{
@@ -465,16 +477,25 @@ WebGLGameRenderer.prototype.preRender = function( game )
 WebGLGameRenderer.prototype.onCardDestroyed = function( player, pool, card, index )
 {
 	console.log(" + Card DESTROYED: " + card.toString() );
-	//remove node
-	if( card._node )
-		card._node.parentNode.removeChild( card._node );
+	if( !card._node )
+		return;
 
-	//free texture
-	if(	card._texture )
-	{
-		delete gl.textures[ card._texture.name ];
-		card._texture.delete();
-	}
+	Tween.easeProperty( card._node, "position", [0,10,0], 3000 );
+	Tween.easeProperty( card._node, "rotation", quat.create(), 3000 );
+
+	if(1)
+	setTimeout( function(){
+		//remove node
+		if( card._node )
+			card._node.parentNode.removeChild( card._node );
+
+		//free texture
+		if(	card._texture )
+		{
+			delete gl.textures[ card._texture.name ];
+			card._texture.delete();
+		}
+	},3000);
 }
 
 
