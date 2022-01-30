@@ -436,6 +436,15 @@ Game.prototype.applyEvent = function ( hand_id, event_id )
 			console.log(" + Updating Trait " + power_type + " of level " + event_card.power[power_type] + " to card " + hand_id);
 		}
 		hand_card.traits = hand_card.traits.filter(trait => trait.level > 0);
+		
+		hand_card.traits.sort(function (a,b) {
+			var ret = b.level - a.level;
+			return ret != 0 ? ret : [-1,1].random();
+		});
+		
+		var MAX_TRAITS = 4;
+		if (hand_card.traits.length > MAX_TRAITS)
+			hand_card.traits.splice(MAX_TRAITS, hand_card.traits.length - MAX_TRAITS);
 	}
 	hand_card._must_update = true;
 	
