@@ -83,7 +83,7 @@ var PLAYSTAGE = {
 
 		if( e.type == "mousedown" )
 		{
-			if(	this.hover && this.game.current_player == 0 )
+			if(	this.hover ) //&& this.game.current_player == 0 )
 			{
 				if( this.hover.constructor == Card ) //highlight
 				{

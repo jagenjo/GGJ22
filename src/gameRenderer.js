@@ -265,7 +265,7 @@ function WebGLGameRenderer( canvas )
 		var slot_pos = WebGLGameRenderer.goal_slots[i];
 		var slot_info = { slot: "goal", name:"goal_" + i, index: i };
 		var node = this.createSlot( slot_pos,slot_info );
-		node.rotate( 90 * DEG2RAD, [0,1,0] );
+		node.rotate( -90 * DEG2RAD, [0,1,0] );
 		this.slots.goals.push( slot_info );
 	}
 
@@ -429,9 +429,9 @@ WebGLGameRenderer.prototype.preRender = function( game )
 	}
 
 	//goals
-	for(var i = 0; i < game.cards.mountGoals.length; ++i)
+	for(var i = 0; i < game.cards.activeGoals.length; ++i)
 	{
-		var card = game.cards.mountGoals[j];
+		var card = game.cards.activeGoals[i];
 		var node = this.getCardNode(card);
 		this.cardToSlot( card,"goals", i );
 	}
@@ -523,44 +523,6 @@ WebGLGameRenderer.prototype.testRay = function( ray )
 	return this.scene.testRay( ray, this.last_collision, 100, 3, false );
 }
 
-/*
-WebGLGameRenderer.prototype.renderCards = function( cards )
-{
-	var m = mat4.create();
-	for(var i = 0; i < 3; ++i )
-	{
-		//var card = cards[i];
-		var card = this.test_card;
-		var tex = this.getCardTexture( card );
-		if( !tex || !tex.width )
-			continue;
-
-		//position
-		mat4.identity(m);
-		var aspect = tex.width / tex.height;
-		mat4.translate(m,m,[i * 2,0.2,0]);
-		//render
-		this.renderCard( card, m );
-	}
-}
-
-WebGLGameRenderer.prototype.renderCard = function( card, model )
-{
-	var camera = this.camera;
-	var mesh = gl.meshes["planeXZ"];
-	var shader = gl.shaders["card"];
-	var tex = this.getCardTexture( card );
-	if(!tex || !shader)
-		return;
-
-	gl.disable( gl.BLEND );
-	gl.disable( gl.CULL_FACE );
-	var aspect = tex.width / tex.height;
-	mat4.scale(model, model, [2,2*aspect,2] );
-	this.scene_renderer.renderMesh( model, mesh, tex, null, shader );
-}
-*/
-
 WebGLGameRenderer.prototype.getCardTexture = function( card )
 {
 	if(card._texture && !card._must_update )
@@ -609,3 +571,41 @@ CanvasGameRenderer.prototype.renderGame = function( game, player )
 	//place camera according to user view
 }
 
+
+/*
+WebGLGameRenderer.prototype.renderCards = function( cards )
+{
+	var m = mat4.create();
+	for(var i = 0; i < 3; ++i )
+	{
+		//var card = cards[i];
+		var card = this.test_card;
+		var tex = this.getCardTexture( card );
+		if( !tex || !tex.width )
+			continue;
+
+		//position
+		mat4.identity(m);
+		var aspect = tex.width / tex.height;
+		mat4.translate(m,m,[i * 2,0.2,0]);
+		//render
+		this.renderCard( card, m );
+	}
+}
+
+WebGLGameRenderer.prototype.renderCard = function( card, model )
+{
+	var camera = this.camera;
+	var mesh = gl.meshes["planeXZ"];
+	var shader = gl.shaders["card"];
+	var tex = this.getCardTexture( card );
+	if(!tex || !shader)
+		return;
+
+	gl.disable( gl.BLEND );
+	gl.disable( gl.CULL_FACE );
+	var aspect = tex.width / tex.height;
+	mat4.scale(model, model, [2,2*aspect,2] );
+	this.scene_renderer.renderMesh( model, mesh, tex, null, shader );
+}
+*/

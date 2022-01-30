@@ -142,9 +142,8 @@ Game.prototype.endTurn = function()
 
 	// Ejecutamos las acciones pendientes del jugador actual
 	for (var i = 0; i < player.actions.length; ++i)
-	{
 		player.actions[i].execute();
-	}
+	player.actions = [];
 
 	// El turno pasa al siguiente jugador
 	this.current_player = (this.current_player+1) % 2;
@@ -367,6 +366,9 @@ Game.prototype.toString = function()
 	str += "  # Table Pool ("+this.cards.pool.length+"):\n";
 	for(var i = 0; i < this.cards.pool.length; ++i)
 		str += "     . " + this.cards.pool[i].toString() + "\n";
+	str += "  # GOALS ("+this.cards.activeGoals.length+"):\n";
+	for(var i = 0; i < this.cards.activeGoals.length; ++i)
+		str += "     . " + this.cards.activeGoals[i].toString() + "\n";
 	return str;
 }
 
