@@ -133,9 +133,9 @@ CardMaker.prototype.buildCard = function( card, force )
 	}
 	else if( card.type == Card.TYPE_GOAL )
 	{
-			
+		
 	}
-	else if( card.type == Card.TYPE_GOAL )
+	else if( card.type == Card.TYPE_EVENT )
 	{
 		
 	}
@@ -228,21 +228,24 @@ function WebGLGameRenderer( canvas )
 	this.cards_node.addChild( this.player_hand );
 	*/
 
-	//table slots
+	//slots
 	this.slots = {
 		table_pool: [],
 		couples_A: [],
-		couples_B: []
+		couples_B: [],
+		goals: []
 	};
 
+	//pool slots
 	for(var i = 0; i < WebGLGameRenderer.table_slots.length; ++i)
 	{
 		var slot_pos = WebGLGameRenderer.table_slots[i];
-		var slot_info = { slot: "pool", name:"pool", index: i };
+		var slot_info = { slot: "pool", name:"pool_" + i, index: i };
 		var node = this.createSlot( slot_pos,slot_info );
 		this.slots.table_pool.push( slot_info );
 	}
 
+	//frontline slots
 	for(var i = 0; i < WebGLGameRenderer.couple_slots.length; ++i)
 	{
 		var slot_pos = WebGLGameRenderer.couple_slots[i];
@@ -254,6 +257,16 @@ function WebGLGameRenderer( canvas )
 		var slot_info = { slot: "couple", side:"B", index: i, name: "couple_B_slot_" + i };
 		var node = this.createSlot( [slot_pos[0],slot_pos[1],-slot_pos[2]], slot_info );
 		this.slots.couples_B.push( slot_info );
+	}
+
+	//goals slots
+	for(var i = 0; i < WebGLGameRenderer.goal_slots.length; ++i)
+	{
+		var slot_pos = WebGLGameRenderer.goal_slots[i];
+		var slot_info = { slot: "goal", name:"goal_" + i, index: i };
+		var node = this.createSlot( slot_pos,slot_info );
+		node.rotate( 90 * DEG2RAD, [0,1,0] );
+		this.slots.goals.push( slot_info );
 	}
 
 	this.card_maker = new CardMaker();
@@ -283,6 +296,10 @@ WebGLGameRenderer.couple_slots = [
 	[-3.5,0,4.8],[-1.2,0,4.8],[1.2,0,4.8],[3.5,0,4.8]
 ];
 
+WebGLGameRenderer.goal_slots = [
+	[4.8,0,-2.4],[4.8,0,0],[4.8,0,2.4]
+];
+
 //WebGLGameRenderer.prototype = Object.create( CanvasGameRenderer.prototype ); //inherit
 
 WebGLGameRenderer.prototype.cardToSlot = function( card, type, index )
@@ -306,10 +323,15 @@ WebGLGameRenderer.prototype.cardToSlot = function( card, type, index )
 	{
 		target = this.slots.couples_B[index];
 	}
+	else if(type == "goals")
+	{
+		target = this.slots.goals[index];
+	}
 
 	if(target)
 	{
 		node.position = target._node.position;
+		node.rotation = target._node.rotation;
 		node.move([0,0.03,0]);
 	}
 }
@@ -404,6 +426,14 @@ WebGLGameRenderer.prototype.preRender = function( game )
 	{
 		var slot = this.slots.couples_B[i];
 		slot._node2.texture = slot._hover ? "data/card_marker_highlight.png" : "data/card_marker.png";
+	}
+
+	//goals
+	for(var i = 0; i < game.cards.mountGoals.length; ++i)
+	{
+		var card = game.cards.mountGoals[j];
+		var node = this.getCardNode(card);
+		this.cardToSlot( card,"goals", i );
 	}
 }
 
