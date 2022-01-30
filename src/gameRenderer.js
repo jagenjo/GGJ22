@@ -47,10 +47,10 @@ function CardMaker( on_ready )
 CardMaker.prototype.buildCard = function( card, force )
 {
 	var canvas = this._card_canvas;
-	var template = getImage( card.gender == "F" ? "data/card_female.png" : "data/card_male.png" );
-	if( !template || template.is_loading )
-		return null;
+	canvas.width = 256; //template.width;
+	canvas.height = 128; //template.height;
 
+	//still loading
 	if(num_loading_images)
 		return;
 
@@ -66,41 +66,55 @@ CardMaker.prototype.buildCard = function( card, force )
 		getImage( "data/ATREZZO.png" )
 	];
 
-	canvas.width = template.width;
-	canvas.height = template.height;
 
 	var ctx = canvas.getContext("2d");
 	ctx.imageSmoothingEnabled = false;
 	ctx.clearRect(0,0,canvas.width,canvas.height);
+
 	//background
-	ctx.drawImage( template, 0,0 );
-
-	ctx.save();
-	ctx.beginPath();
-	ctx.rect(8,8,100,114);
-	ctx.clip();
-
-	//fill face
-	var s = 128;
-	var offsetx = Math.random()*3;
-	var offsety = Math.random()*3;
-	for(var i = 0; i < layers.length; ++i)
+	var background = null;
+	switch( card.type )
 	{
-		var layer = layers[i];
-		var celdax = Math.floor(Math.random() * 4);
-		var celday = Math.floor(Math.random() * 2) + (card.gender == "F" ? 2 : 0);
-		ctx.drawImage( layer, celdax*s, celday*s, s,s, -4 + offsetx,offsety,s,s );
+		case Card.TYPE_PERSON: background = getImage( card.gender == "F" ? "data/card_female.png" : "data/card_male.png" ); break;
+		case Card.TYPE_EVENT: background = getImage( "data/card_event.png" ); break;
+		case Card.TYPE_GOAL: background = getImage( "data/card_goal.png" ); break;
 	}
+	ctx.drawImage( background, 0,0 );
 
-	ctx.restore();
+	if( card.type == Card.TYPE_PERSON )
+	{
+		ctx.save();
+		ctx.beginPath();
+		ctx.rect(8,8,100,114);
+		ctx.clip();
+
+		//fill face
+		var s = 128;
+		var offsetx = Math.random()*3;
+		var offsety = Math.random()*3;
+		for(var i = 0; i < layers.length; ++i)
+		{
+			var layer = layers[i];
+			var celdax = Math.floor(Math.random() * 4);
+			var celday = Math.floor(Math.random() * 2) + (card.gender == "F" ? 2 : 0);
+			ctx.drawImage( layer, celdax*s, celday*s, s,s, -4 + offsetx,offsety,s,s );
+		}
+
+		ctx.restore();
+
+		//traits
+	}
+	else if( card.type == Card.TYPE_GOAL )
+	{
+				
+	}
 
 	//text
 	ctx.fillStyle = "white";
 	ctx.font = "18px Tahoma";
 	ctx.fillText( card.name, 120,24 );
 
-	//traits
-
+	
 	var final_image = card._image || new Image();
 	final_image.src = canvas.toDataURL();
 	card._image = final_image;
@@ -120,8 +134,8 @@ function WebGLGameRenderer( canvas )
 	this.hover_card_size = [2.2,2.2,1.2];
 
 	this.camera = new RD.Camera();
-	this.camera.lookAt([0,10,40],[0,0,0],[0,1,0]);
-	this.camera.perspective( 60, 1, 0.1,100);
+	this.camera.lookAt([0,70,40],[0,0,0],[0,1,0]);
+	this.camera.perspective( 60, 1, 0.1,200);
 
 	this.hard_camera = new RD.Camera();
 	this.hard_camera.lookAt([0,10,10],[0,0,0],[0,1,0]);
@@ -136,6 +150,8 @@ function WebGLGameRenderer( canvas )
 
 	this.floor_node = new RD.SceneNode({ name: "floor", layer: 4, mesh:"planeXZ", texture: "data/table.png", scale:11.5 });
 	this.scene.root.addChild( this.floor_node );
+	this.bg_node = new RD.SceneNode({ name: "bg", layer: 4, mesh:"planeXZ", texture: "data/background.png", position: [0,-3,0],scale:50 });
+	this.scene.root.addChild( this.bg_node );
 
 	this.deckA_node = new RD.SceneNode({ name: "deck", layer: 4, mesh:"data/deck.obj", texture: "data/card_male_back.png", scale:0.5 });
 	this.deckA_node.flags.two_sided = true;
@@ -255,7 +271,7 @@ WebGLGameRenderer.prototype.renderGame = function( game, player, settings )
 	this.camera.position = vec3.lerp(this.camera.position,this.camera.position,this.hard_camera.position,f);
 	this.camera.target = vec3.lerp(this.camera.target,this.camera.target,this.hard_camera.target,f);
 	var aspect = gl.canvas.width / gl.canvas.height;
-	this.camera.perspective( 50, aspect, 0.1,100);
+	this.camera.perspective( 50, aspect, 0.1,200);
 
 	//prerender; create nodes and position all
 	this.preRender(game);
@@ -328,7 +344,7 @@ WebGLGameRenderer.prototype.preRender = function( game )
 WebGLGameRenderer.prototype.highlightCard = function( card, v )
 {
 	if(!this._highlight_node)
-		this._highlight_node = new RD.SceneNode({ position: [0,-0.01,0], layers: 4, name: "highlight", color: [1,1,1,1], mesh: "planeXZ", texture: "data/card_marker.png", scaling: [1.1,1.1,1.1] });
+		this._highlight_node = new RD.SceneNode({ position: [0,0.02,0], layers: 4, name: "highlight", color: [1,1,1,1], mesh: "planeXZ", texture: "data/card_marker.png", scaling: [2.2,2.2,1.1] });
 
 	if( this._highlight_node._parent != card._node )
 	{
