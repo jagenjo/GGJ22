@@ -34,6 +34,13 @@ function Game()
 	this.last_card_id = 0;
 
 	this.onCardDestroyed = null; //called when a card dissapears from the game (used to free memory)
+
+	this.names_DB =
+	{
+		F: ["Maria", "Carmen", "Isabel", "Ana", "Laura", "Cristina", "Marta", "Pilar", "Emma", "Elizabeth", "Margaret", "Alice", "Sarah", "Bertha", "Mabel", "Bessie", "Yinuo", "Xinyi", "Zihan", "Yutong", "Xinyan", "Kexin", "Yuxi", "Mengyao", "Sunita", "Anita", "Gita", "Rekha", "Lakshmi", "Manju", "Shanti", "Usha"],
+		M: ["Antonio", "Jose", "Manuel", "Francisco", "Juan", "David", "Javier", "Pedro", "John", "William", "James", "Charles", "George", "Frank", "Thomas", "Henry", "Yichen", "Yuxuan", "Haouyu", "Zimo", "Yuhang", "Haoran", "Zihao", "Zizhuo", "Ram", "Mohammed", "Sri", "Santosh", "Sanjay", "Sunil", "Rajesh", "Ramesh"],
+		surnames: ["Perez", "Garcia", "Gonzalez", "Rodriguez", "Fernandez", "Martin", "Jimenez", "Ruiz", "Smith", "Johnson", "Brown", "Jones", "Miller", "Wilson", "Moore", "Walker", "Wang", "Li", "Zhang", "Liu", "Chen", "Yang", "Huang", "Zhao", "Devi", "Singh", "Kumar", "Das", "Kaur", "Ram", "Yadav", "Kumari"]
+	};
 }
 
 Game.verbose = true;
@@ -215,6 +222,35 @@ Game.prototype.getCurrentPlayer = function()
 	return this.players[ this.current_player ];
 }
 
+Game.prototype.getCurrentPlayerCardInHand = function( card_id )
+{
+	var player = this.getCurrentPlayer();
+	for (var i = 0; i < player.hand.length; ++i)
+	{
+		if (player.hand[i].id == card_id)
+		{
+			return player.hand[i];
+		}
+	}
+	
+	if(Game.verbose)
+		console.log("Error: Card " + card_id + " doesn't exist in player " + (player.index) + "'s hand");
+}
+
+Game.prototype.getPoolCard = function( card_id )
+{
+	for (var i = 0; i < this.cards.pool.length; ++i)
+	{
+		if (this.cards.pool[i].id == card_id)
+		{
+			return this.cards.pool[i];
+		}
+	}
+	
+	if(Game.verbose)
+		console.log("Error: Card " + card_id + " doesn't exist in game pool.");
+}
+
 Game.prototype.demoGame = function()
 {
 	this.init();
@@ -229,17 +265,10 @@ Game.prototype.generatePersonCard = function( gender )
 	if(Game.verbose)
 		console.log(" + Generating Card: " + gender );
 
-	const names_DB =
-	{
-		F: ["Maria", "Carmen", "Isabel", "Ana", "Laura", "Cristina", "Marta", "Pilar", "Emma", "Eliza", "Margret", "Alice", "Sarah", "Bertha", "Mabel", "Bessie", "Yinuo", "Xinyi", "Zihan", "Yutong", "Xinyan", "Kexin", "Yuxi", "Mengyao", "Sunita", "Anita", "Gita", "Rekha", "Lakshmi", "Manju", "Shanti", "Usha"],
-		M: ["Toni", "Jose", "Manuel", "Fran", "Juan", "David", "Javi", "Pedro", "John", "Will", "James", "Charles", "George", "Frank", "Thomas", "Henry", "Yichen", "Yuxuan", "Haouyu", "Zimo", "Yuhang", "Haoran", "Zihao", "Zizhuo", "Ram", "Moha", "Sri", "Santosh", "Sanjay", "Sunil", "Rajesh", "Ramesh"],
-		surnames: ["Perez", "Garcia", "Gonz.", "Rodr.", "Ferndz.", "Martin", "Jimnz.", "Ruiz", "Smith", "Johnson", "Brown", "Jones", "Miller", "Wilson", "Moore", "Walker", "Wang", "Li", "Zhang", "Liu", "Chen", "Yang", "Huang", "Zhao", "Devi", "Singh", "Kumar", "Das", "Kaur", "Ram", "Yadav", "Kumari"]
-	};
-
 	var card = new Card(this);
 	card.type = Card.TYPE_PERSON;
-	card.name = names_DB[gender].random() + " " + names_DB.surnames.random();
 	card.gender = gender;
+	card.name = this.names_DB[card.gender].random() + " " + this.names_DB.surnames.random();
 	// card.visuals...
 	// Asignamos traits
 	var tmp_traits = [];
@@ -253,6 +282,12 @@ Game.prototype.generatePersonCard = function( gender )
 	{
 		card.traits.push({type: tmp_traits.randomPop(), level: [1,2].random()});
 	}
+
+	// Ordenamos los traits por nivel decrecientemente
+	card.traits.sort(function (a,b) {
+		return b.level - a.level;
+	})
+
 	return card;
 }
 
@@ -293,15 +328,55 @@ Game.prototype.pairCards = function ( hand_id, pool_id )
 		console.log(" = Result: " + new_card.id );
 }
 
-Game.prototype.mergeCards = function ( card1_id, card2_id )
+Game.prototype.mergeCards = function ( hand_id, pool_id )
 {
 	if(Game.verbose)
-		console.log(" + Merging cards: " +  card1_id + " + " + card2_id );
+		console.log(" + Merging cards: " +  hand_id + " + " + pool_id );
+
+	var hand_card = this.getCurrentPlayerCardInHand( hand_id );
+	var pool_card = this.getPoolCard( pool_id );
 
 	var new_card = new Card(this);
+	new_card.type = Card.TYPE_PERSON;
 	new_card.gender = ["F","M"].random();
+	new_card.name = this.names_DB[new_card.gender].random() + " " + [hand_card, pool_card].random().name.split(" ")[1];
 
-	//TODO: Stats
+	var trait_pool = [];
+	for (var trait_type = 0; trait_type < TRAIT.N_TRAIT_TYPES; ++trait_type)
+	{
+		var trait_level = 0;
+		for (var i = 0; i < hand_card.traits.length; ++i)
+		{
+			if (hand_card.traits[i].type == trait_type)
+			{
+				trait_level += hand_card.traits[i].level;
+			}
+		}
+		for (var i = 0; i < pool_card.traits.length; ++i)
+		{
+			if (pool_card.traits[i].type == trait_type)
+			{
+				trait_level += pool_card.traits[i].level;
+			}
+		}
+		trait_pool.push({type: trait_type, level: Math.ceil(0.6*trait_level)});
+	}
+
+	// Ordenamos decrecientemente la trait pool por level; si tienen el mismo level, el orden es random
+	trait_pool.sort(function (a,b) {
+		var ret = b.level - a.level;
+		return ret != 0 ? ret : [-1,1].random();
+	})
+
+	// Le añadimos 1 al atributo mas fuerte
+	++trait_pool[0].level;
+
+	for (var i = 3; i < TRAIT.N_TRAIT_TYPES; ++i)
+	{
+		trait_pool[i]
+	}
+
+	new_card.traits = trait_pool;
 
 	return new_card;
 }
@@ -385,6 +460,7 @@ function Player(index)
 	this.frontline = [];
 	this.won = [];
 	this.score = 0;
+	this.offered_event_card_id = -1;
 
 	this.actions = [];
 
@@ -448,6 +524,7 @@ function Card( game )
 	this.phase = -1;
 	this.power = {};
 	this.requisites = {};
+	this.slot = -1;
 
 	this._owner = null;
 	this._game = null;
@@ -487,6 +564,8 @@ Card.prototype.toString = function()
 		str += "'"+this.idc+"' ";
 	else if(this.name)
 		str += "'"+this.name+"' ";
+	if(this.gender != "")
+		str += "Gender:" + this.gender + " ";
 
 	if( this.type == Card.TYPE_PERSON )
 		for(var i = 0; i < this.traits.length; ++i)
