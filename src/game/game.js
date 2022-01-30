@@ -377,7 +377,7 @@ Game.prototype.mergeCards = function ( hand_id, pool_id )
 		trait_pool[i]
 	}
 
-	new_card.traits = trait_pool;
+	new_card.traits = trait_pool.filter(trait => trait.level > 0);
 
 	return new_card;
 }
