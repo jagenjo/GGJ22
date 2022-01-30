@@ -174,11 +174,11 @@ Game.prototype.endTurn = function()
 
 		// Dar carta de evento scope=="I" a jugador y que haga lo que sea
 		var indiviudal_events = [];
-		for (var i = 0; i < this.cards.mountEvents.length; ++i)
+		for (var j = 0; j < this.cards.mountEvents.length; ++j)
 		{
-			if (this.cards.mountEvents[i].scope == "I" && this.cards.mountEvents[i].phase == this.phase)
+			if (this.cards.mountEvents[j].scope == "I" && this.cards.mountEvents[j].phase == this.phase)
 			{
-				indiviudal_events.push(this.cards.mountEvents[i]);
+				indiviudal_events.push(this.cards.mountEvents[j]);
 			}
 		}
 		this.getCurrentPlayer().offered_event_card = indiviudal_events.random();
@@ -438,7 +438,11 @@ Game.prototype.applyEvent = function ( hand_id, event_id )
 		hand_card.traits.filter(trait => trait.level > 0);
 	}
 	hand_card._must_update = true;
-	this.getCurrentPlayer().offered_event_card = null;
+	
+	var player = this.getCurrentPlayer();
+	if( this.onCardDestroyed )
+		this.onCardDestroyed( player, "event", event_card );
+	player.offered_event_card = null;
 }
 
 Game.prototype.submitGoal = function ( hand_id, goal_id )
