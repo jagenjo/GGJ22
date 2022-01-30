@@ -95,7 +95,7 @@ Game.prototype.fillStacks = function()
 			for (var j = 0; j < N_CARDS_IN_HAND / 2; ++j)
 			{
 				var card = this.cards.persons[gender].randomPop();
-				card.__owner = this.players[i];
+				card._owner = this.players[i];
 				this.players[i].hand.push(card);
 			}
 		}
@@ -402,7 +402,7 @@ Action.prototype.fromJSON = function(json)
 	this.type = Math.max(0, Action.TYPE_STR.indexOf(json.type || "NONE"));
 	this.hand_card = json.hand_card_id;
 	this.secondary_card = json.pool_card_id || json.event_card_id || json.goal_card_id || -1;
-	this._owner = Game.GAME.players[Math.min(json.player_index, Game.GAME.players.length-1)];
+	this._owner = GAME.players[Math.min(json.player_index, GAME.players.length-1)];
 }
 
 Action.prototype.execute = function()
@@ -411,17 +411,17 @@ Action.prototype.execute = function()
 	{
 		case Action.TYPE_PAIR_CARDS:
 		{
-			action.execute = function () { this._game.pairCards(this.hand_card, this.secondary_card); };
+			this._game.pairCards(this.hand_card, this.secondary_card);
 			break;
 		}
 		case Action.TYPE_APPLY_EVENT:
 		{
-			action.execute = function () { this._game.applyEvent(this.hand_card, this.secondary_card); };
+			this._game.applyEvent(this.hand_card, this.secondary_card);
 			break;
 		}
 		case Action.TYPE_SUBMIT_GOAL:
 		{
-			action.execute = function () { this._game.submitGoal(this.hand_card, this.secondary_card); };
+			this._game.submitGoal(this.hand_card, this.secondary_card);
 			break;
 		}
 		default:
