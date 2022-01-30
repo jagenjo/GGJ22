@@ -435,6 +435,7 @@ Game.prototype.applyEvent = function ( hand_id, event_id )
 		}
 	}
 	hand_card._must_update = true;
+	this.getCurrentPlayer().offered_event_card = null;
 }
 
 Game.prototype.submitGoal = function ( hand_id, goal_id )
