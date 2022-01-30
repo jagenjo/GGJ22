@@ -157,11 +157,13 @@ Game.prototype.endTurn = function()
 	for (var i = 0; i < this.players.length; ++i)
 	{
 		player = this.players;
-		for (var j = 0; j <player.frontline.length; ++j)
+		for (var j = 0; j < player.frontline.length; ++j )
 		{
 			//this.players[i].frontline[j].growUp();
-			player.hand.push( player.frontline[j] );
+			var card = player.frontline[j];
+			player.hand.push( card );
 		}
+
 		player.frontline = [];
 
 		// Dar carta de evento type=="I" a jugador y que haga lo que sea

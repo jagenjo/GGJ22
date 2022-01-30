@@ -47,7 +47,6 @@ function CardMaker( on_ready )
 
 CardMaker.prototype.buildCard = function( card, force )
 {
-
 	var canvas = this._card_canvas;
 	var temp = this._temp_canvas;
 	temp.width = canvas.width = 256; //template.width;

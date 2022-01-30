@@ -160,6 +160,8 @@ var CONFIRM_COUPLE_STAGE = {
 				var player = PLAYSTAGE.game.getCurrentPlayer();
 				player.addAction( "pair_cards", this.first_card.id, this.second_card.id );
 				PLAYSTAGE.game.endTurn();
+				this.first_card = null;
+				this.second_card = null;
 				CORE.changeStage( PLAYSTAGE );
 			}
 			else if( isInsideRect( CORE.mouse, [gl.canvas.width * 0.6 - 128, gl.canvas.height * 0.75 - 32, 256, 64 ] ) )
