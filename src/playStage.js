@@ -10,7 +10,7 @@ var PLAYSTAGE = {
 	{
 		this.game = new Game();
 		this.game.init();
-
+		this.game.onCardDestroyed = GFX.renderer.onCardDestroyed.bind(this);
 	},
 
 	render: function()
@@ -27,7 +27,7 @@ var PLAYSTAGE = {
 	renderUI: function()
 	{
 		gl.start2D();
-		GFX.drawTitle( this.game.current_player == 0 ? "tu turno" : "juega la IA", gl.canvas.width * 0.5, 30 );
+		GFX.drawTitle( this.game.current_player == 0 ? "haz pareja" : "juega la IA", gl.canvas.width * 0.5, 30 );
 		if(this.hover && this.hover.constructor == Card )
 			GFX.drawCard2D( this.hover, gl.canvas.width * 0.5, 200, 2 );
 	},
@@ -157,7 +157,9 @@ var CONFIRM_COUPLE_STAGE = {
 			if( isInsideRect( CORE.mouse, [gl.canvas.width * 0.4 - 128, gl.canvas.height * 0.75 - 32, 256, 64 ] ) )
 			{
 				//do action
-
+				var player = PLAYSTAGE.game.getCurrentPlayer();
+				player.addAction( "pair_cards", this.first_card.id, this.second_card.id );
+				PLAYSTAGE.game.endTurn();
 				CORE.changeStage( PLAYSTAGE );
 			}
 			else if( isInsideRect( CORE.mouse, [gl.canvas.width * 0.6 - 128, gl.canvas.height * 0.75 - 32, 256, 64 ] ) )

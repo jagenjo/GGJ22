@@ -32,7 +32,6 @@ var CORE = {
 	{
 		//create canvas
 		this.canvas = document.querySelector("canvas");
-		enableWebGLCanvas( this.canvas, { magFilter: GL.NEAREST, minFilter: GL.NEAREST } );
 		this._on_mouse_bind = this.processMouse.bind(this);
 		this._on_key_bind = this.processKey.bind(this);
 		this.canvas.addEventListener("mousedown", this._on_mouse_bind );

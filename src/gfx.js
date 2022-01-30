@@ -6,6 +6,7 @@ var GFX = {
 		//create renderer
 		//this.renderer = new CanvasGameRenderer( this.canvas );
 		this.renderer = new WebGLGameRenderer( this.canvas );
+		enableWebGLCanvas( this.canvas, { magFilter: GL.NEAREST, minFilter: GL.NEAREST } );
 
 		this.ray = new RD.Ray();
 	},

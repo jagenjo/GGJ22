@@ -33,12 +33,17 @@ function Game()
 	this.current_player = 0; //index
 	this.last_card_id = 0;
 
-	this.onNewTurn = null;
+	this.onCardDestroyed = null; //called when a card dissapears from the game (used to free memory)
 }
+
+Game.verbose = true;
 
 
 Game.prototype.init = function()
 {
+	if(Game.verbose)
+		console.log(" + NEW GAME ");
+
 	//reset all
 	this.players = [];
 
@@ -58,6 +63,9 @@ Game.prototype.init = function()
 
 Game.prototype.fillStacks = function()
 {
+	if(Game.verbose)
+		console.log(" + Fill Stacks ");
+
 	// Rellenar los montones del game a partir del mazo
 	const N_PERSON_CARDS = 64; // Multiple de 2
 	for (const gender of ["F", "M"])
@@ -117,41 +125,54 @@ Game.prototype.fillStacks = function()
 
 Game.prototype.endTurn = function()
 {
+	if(Game.verbose)
+		console.log(" + End Turn");
+
 	var player = this.getCurrentPlayer();
 
 	// Ejecutamos las acciones pendientes del jugador actual
-	for (var i = 0; i = player.actions.length; ++i)
+	for (var i = 0; i < player.actions.length; ++i)
 	{
 		player.actions[i].execute();
 	}
 
 	// El turno pasa al siguiente jugador
-	current_player = (current_player+1) % 2;
-	// Si no le quedan cartas en la mano, es que se ha terminado la ronda y debemos empezar una nueva
-	if (this.getCurrentPlayer().hand.length == 0)
-	{
-		++this.turn;
-		if (this.turn % 3 == 0)
-		{
-			this.startEra();
-		}
+	this.current_player = (this.current_player+1) % 2;
 
-		// Nueva ronda, las cartas en frontline de ambos players se hacen adultas y pasan a la mano
-		for (var i = 0; i < this.players.length; ++i)
+	player = this.getCurrentPlayer();
+
+
+	// Si quedan cartas en la mano nada mas que hacer
+	if (player.hand.length != 0)
+		return;
+
+	//sino es que se ha terminado la ronda y debemos empezar una nueva
+	++this.turn;
+	if (this.turn % 3 == 0)
+	{
+		this.startEra();
+	}
+
+	// Nueva ronda, las cartas en frontline de ambos players se hacen adultas y pasan a la mano
+	for (var i = 0; i < this.players.length; ++i)
+	{
+		player = this.players;
+		for (var j = 0; j <player.frontline.length; ++j)
 		{
-			for (var j = 0; j < this.players[i].frontline.length; ++j)
-			{
-				//this.players[i].frontline[j].growUp();
-				this.players[i].hand.push(this.players[i].frontline[j]);
-			}
-			this.players[i].frontline = [];
-			// Dar carta de evento type=="I" a jugador y que haga lo que sea
+			//this.players[i].frontline[j].growUp();
+			player.hand.push( player.frontline[j] );
 		}
+		player.frontline = [];
+
+		// Dar carta de evento type=="I" a jugador y que haga lo que sea
+		// TO DO
 	}
 }
 
 Game.prototype.startPhase = function()
 {
+	if(Game.verbose)
+		console.log(" + Start phase");
 	++this.phase;
 	// Cambiamos las cartas de objetivo de la mesa descartando las previas
 	this.updateGoals(this.phase);
@@ -194,6 +215,9 @@ Game.prototype.demoGame = function()
 
 Game.prototype.generatePersonCard = function( gender )
 {
+	if(Game.verbose)
+		console.log(" + Generating Card: " + gender );
+
 	const names_DB =
 	{
 		F: ["Maria", "Carmen", "Isabel", "Ana", "Laura", "Cristina", "Marta", "Pilar", "Emma", "Elizabeth", "Margaret", "Alice", "Sarah", "Bertha", "Mabel", "Bessie", "Yinuo", "Xinyi", "Zihan", "Yutong", "Xinyan", "Kexin", "Yuxi", "Mengyao", "Sunita", "Anita", "Gita", "Rekha", "Lakshmi", "Manju", "Shanti", "Usha"],
@@ -223,14 +247,19 @@ Game.prototype.generatePersonCard = function( gender )
 
 Game.prototype.pairCards = function ( hand_id, pool_id )
 {
+	if(Game.verbose)
+		console.log(" + Pairing: " + hand_id + " with " + pool_id);
 	var new_card = this.mergeCards(hand_id, pool_id);
 	var player = this.getCurrentPlayer();
 	// Quitamos la carta que hemos emparejado de la mano del jugador
 	for (var i = 0; i < player.hand.length; ++i)
 	{
-		if (player.hand[i].id == hand_id)
+		var card = player.hand[i];
+		if (card.id == hand_id)
 		{
 			player.hand.splice(i, 1);
+			if( this.onCardDestroyed )
+				this.onCardDestroyed( player, "hand", card, i );
 			break;
 		}
 	}
@@ -240,18 +269,28 @@ Game.prototype.pairCards = function ( hand_id, pool_id )
 		if (this.cards.pool[i].id == pool_id)
 		{
 			// Además, suplimos el hueco que queda en la pool con una carta más del mazo del género que se acabe de sacar
-			this.cards.pool[i] = this.cards.persons[this.cards.pool[i].gender].randomPop();
+			var card = this.cards.pool[i];
+			if( this.onCardDestroyed )
+				this.onCardDestroyed( player, "pool", card, i );
+			this.cards.pool[i] = this.cards.persons[ this.cards.pool[i].gender ].randomPop();
 			break;
 		}
 	}
 	// Añadimos la nueva carta fruto de emparejamiento en la frontline del jugador
 	player.frontline.push(new_card);
+	if(Game.verbose)
+		console.log(" = Result: " + new_card.id );
 }
 
 Game.prototype.mergeCards = function ( card1_id, card2_id )
 {
+	if(Game.verbose)
+		console.log(" + Merging cards: " +  card1_id + " + " + card2_id );
+
 	var new_card = new Card(this);
 	new_card.gender = ["F","M"].random();
+
+	//TODO: Stats
 
 	return new_card;
 }
@@ -263,6 +302,9 @@ Game.prototype.applyEvent = function ( hand_id, event_id )
 
 Game.prototype.submitGoal = function ( hand_id, goal_id )
 {
+	if(Game.verbose)
+		console.log(" + Submit goals: " +  hand_id + " -> " + goal_id );
+
 	var goal_card;
 	var player = this.getCurrentPlayer();
 	// Quitamos la carta de objetivo de la pila de cartas de objetivo activas y la sustituimos por otra del mazo
@@ -305,6 +347,22 @@ Game.prototype.fromJSON = function(json)
 {
 }
 
+Game.prototype.toString = function()
+{
+	var str = "";	
+	str += this.players[0].toString();
+	str += this.players[1].toString();
+	str += "  # Table Pool ("+this.cards.pool.length+"):\n";
+	for(var i = 0; i < this.cards.pool.length; ++i)
+		str += "     . " + this.cards.pool[i].toString() + "\n";
+	return str;
+}
+
+Game.prototype.toConsole = function()
+{
+	GAME.toString().split("\n").forEach( a=>console.log("%c " + a, "background-color: #EEE") );
+}
+
 //player state
 function Player(index)
 {
@@ -333,6 +391,7 @@ Player.prototype.addAction = function( action_str, hand_card_id, secondary_card_
 	action.secondary_card = secondary_card_id;
 	action._owner = this;
 	action._game = this._game;
+	this.actions.push( action );
 }
 
 Player.prototype.toJSON = function()
@@ -343,6 +402,19 @@ Player.prototype.toJSON = function()
 Player.prototype.fromJSON = function(json)
 {
 	
+}
+
+Player.prototype.toString = function()
+{
+	var str = " - Player [" + this.index + "]\n";
+	str += "   Hand ("+this.hand.length+"):\n";
+	for(var i = 0; i < this.hand.length; ++i)
+		str += "     . " + this.hand[i].toString() + "\n";
+	str += "   Front ("+this.frontline.length+"):\n";
+	for(var i = 0; i < this.frontline.length; ++i)
+		str += "     . " + this.frontline[i].toString() + "\n";
+	str += "   Won ("+this.frontline.length+") Score: "+this.score+"\n";
+	return str;
 }
 
 
@@ -376,12 +448,13 @@ Card.TYPE_STR = ["NONE","PERSON","EVENT","GOAL"];
 
 Card.prototype.toJSON = function()
 {
-	return { id: this.id, type: this.type, name: this.name, gender: this.gender, visuals: this.visuals, traits: this.traits };
+	return { id: this.id, idc: this.idc, type: this.type, name: this.name, gender: this.gender, visuals: this.visuals, traits: this.traits };
 }
 
 Card.prototype.fromJSON = function(json)
 {
 	if (json.id!=undefined) this.id = json.id;
+	if (json.idc!=undefined) this.idc = json.idc;
 	if (json.type!=undefined) this.type = json.type;
 	if (json.name!=undefined) this.name = json.name;
 	if (json.gender!=undefined) this.gender = json.gender;
@@ -395,7 +468,26 @@ Card.prototype.fromJSON = function(json)
 
 Card.prototype.toString = function()
 {
-	return "CARD: ["+Card.TYPE_STR[this.type]+"]";
+	var str = "CARD "+this.id+": ["+Card.TYPE_STR[this.type]+"] ";
+	if(this.idc)
+		str += "'"+this.idc+"' ";
+	if( this.type == Card.TYPE_PERSON )
+		for(var i = 0; i < this.traits.length; ++i)
+		{
+			var t = this.traits[i];
+			str += TRAIT.TYPE_STR[ t.type ] + ":" + t.level + " ";
+		}
+	if( this.type == Card.TYPE_EVENT )
+	{
+		for(var i = 0; i < this.power.length; ++i)
+			str += i + ":" + this.power[i] + " ";
+	}
+	if( this.type == Card.TYPE_GOAL )
+	{
+		for(var i = 0; i < this.power.length; ++i)
+			str += i + ":" + this.power[i] + " ";
+	}
+	return str;
 }
 
 function Action()
@@ -437,31 +529,22 @@ Action.prototype.fromJSON = function(json)
 
 Action.prototype.execute = function()
 {
-	switch (action.type)
+	console.log(" + executing action: " + this.type );
+	switch (this.type)
 	{
 		case Action.TYPE_PAIR_CARDS:
-		{
 			this._game.pairCards(this.hand_card, this.secondary_card);
 			break;
-		}
 		case Action.TYPE_APPLY_EVENT:
-		{
 			this._game.applyEvent(this.hand_card, this.secondary_card);
 			break;
-		}
 		case Action.TYPE_SUBMIT_GOAL:
-		{
 			this._game.submitGoal(this.hand_card, this.secondary_card);
 			break;
-		}
 		default:
-		{
 			var accepted_actions = "";
 			for (var i = 1; i < Action.TYPE_STR.length; ++i)
-			{
 				accepted_actions += Action.TYPE_STR[i] + (i < Action.TYPE_STR.length - 1 ? ", " : "");
-			}
 			console.log("Error: Unrecognized action.\nList of accepted actions: " + accepted_actions);
-		}
 	}
 }

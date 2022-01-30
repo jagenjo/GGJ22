@@ -33,6 +33,7 @@ function CardMaker( on_ready )
 {
 	var that = this;
 	this._card_canvas = document.createElement("canvas");
+	this._temp_canvas = document.createElement("canvas");
 	getImage( "data/card_male.png" );
 	getImage( "data/card_female.png" );
 	getImage( "data/FONDO.png" );
@@ -41,14 +42,16 @@ function CardMaker( on_ready )
 	getImage( "data/CARA.png" );
 	getImage( "data/PELOS.png" );
 	getImage( "data/ATREZZO.png" );
-
+	getImage( "data/iconosTraits.png" );
 }
 
 CardMaker.prototype.buildCard = function( card, force )
 {
+
 	var canvas = this._card_canvas;
-	canvas.width = 256; //template.width;
-	canvas.height = 128; //template.height;
+	var temp = this._temp_canvas;
+	temp.width = canvas.width = 256; //template.width;
+	temp.height = canvas.height = 128; //template.height;
 
 	//still loading
 	if(num_loading_images)
@@ -56,6 +59,8 @@ CardMaker.prototype.buildCard = function( card, force )
 
 	if( card._image && !force && !card._must_update )
 		return card._image;
+
+	console.log(" + Card BUILT: " + card.toString() );
 
 	var layers = [
 		getImage( "data/FONDO.png" ),
@@ -66,10 +71,13 @@ CardMaker.prototype.buildCard = function( card, force )
 		getImage( "data/ATREZZO.png" )
 	];
 
-
 	var ctx = canvas.getContext("2d");
 	ctx.imageSmoothingEnabled = false;
 	ctx.clearRect(0,0,canvas.width,canvas.height);
+
+	var ctx_temp = canvas.getContext("2d");
+	ctx_temp.imageSmoothingEnabled = false;
+	ctx_temp.clearRect(0,0,canvas.width,canvas.height);
 
 	//background
 	var background = null;
@@ -103,10 +111,22 @@ CardMaker.prototype.buildCard = function( card, force )
 		ctx.restore();
 
 		//traits
+		var traits = getImage( "data/iconosTraits.png" );
+		/*
+		for(var i = 0; i < card.traits.length; ++i)
+		{
+			var trait = card.traits[i];
+			//ctx.drawImage( traits, 128, 32 );
+		}
+		*/
 	}
 	else if( card.type == Card.TYPE_GOAL )
 	{
-				
+			
+	}
+	else if( card.type == Card.TYPE_GOAL )
+	{
+		
 	}
 
 	//text
@@ -114,6 +134,8 @@ CardMaker.prototype.buildCard = function( card, force )
 	ctx.font = "13px Tahoma";
 	ctx.fillText( card.name, 118,22 );
 
+	ctx.fillStyle = "#555";
+	ctx.fillText( card.id, 10,18 );
 	
 	var final_image = card._image || new Image();
 	final_image.src = canvas.toDataURL();
@@ -315,7 +337,8 @@ WebGLGameRenderer.prototype.preRender = function( game )
 				var high = card._hover ? 0.2 : 0;
 				node.position = [j*(size[0]+0.1) - (num_cards-1)*0.5*size[0],4,8 + j * 0.01];
 				node.setEulerRotation(0,0,0.5);
-				node.scaling = card._hover ? 1.1 : 1;
+				var scale = card._hover ? 1.1 : 1;
+				node.scaling = Math.lerp( scale, node.scaling[0], 0.9 );
 			}
 		}
 	}
@@ -349,6 +372,22 @@ WebGLGameRenderer.prototype.preRender = function( game )
 		slot._node2.texture = slot._hover ? "data/card_marker_highlight.png" : "data/card_marker.png";
 	}
 }
+
+WebGLGameRenderer.prototype.onCardDestroyed = function( player, pool, card, index )
+{
+	console.log(" + Card DESTROYED: " + card.toString() );
+	//remove node
+	if( card._node )
+		card._node.parentNode.removeChild( card._node );
+
+	//free texture
+	if(	card._texture )
+	{
+		delete gl.textures[ card._texture.name ];
+		card._texture.delete();
+	}
+}
+
 
 WebGLGameRenderer.prototype.highlightCard = function( card, v )
 {
