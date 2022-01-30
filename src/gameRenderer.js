@@ -111,8 +111,8 @@ CardMaker.prototype.buildCard = function( card, force )
 
 	//text
 	ctx.fillStyle = "white";
-	ctx.font = "18px Tahoma";
-	ctx.fillText( card.name, 120,24 );
+	ctx.font = "13px Tahoma";
+	ctx.fillText( card.name, 118,22 );
 
 	
 	var final_image = card._image || new Image();
@@ -191,31 +191,40 @@ function WebGLGameRenderer( canvas )
 	for(var i = 0; i < WebGLGameRenderer.table_slots.length; ++i)
 	{
 		var slot_pos = WebGLGameRenderer.table_slots[i];
-		var node = new RD.SceneNode({ position: slot_pos, name: "table_slot_" + i, color: [0.3,0.2,0.1,1], mesh: "planeXZ", texture: "data/card_marker.png", scaling: this.card_size });
-		var slot = { slot: "pool", index: i, _node: node };
-		node._card = slot;
-		this.slots_node.addChild( node );
-		this.slots.table_pool.push( slot );
+		var slot_info = { slot: "pool", name:"pool", index: i };
+		var node = this.createSlot( slot_pos,slot_info );
+		this.slots.table_pool.push( slot_info );
 	}
 
 	for(var i = 0; i < WebGLGameRenderer.couple_slots.length; ++i)
 	{
 		var slot_pos = WebGLGameRenderer.couple_slots[i];
-		var node = new RD.SceneNode({ position: slot_pos, name: "couple_A_slot_" + i, color: [0.6,0.2,0.3,1], mesh: "planeXZ", texture: "data/card_marker.png", scaling: this.card_size });
-		var slot = { slot: "couple", side:"A", index: i, _node: node };
-		node._card = slot;
-		this.slots_node.addChild( node );
-		this.slots.couples_A.push( slot );
+		var slot_info = { slot: "couple", side:"A", index: i, name: "couple_A_slot_" + i };
+		var node = this.createSlot( slot_pos, slot_info );
+		this.slots.couples_A.push( slot_info );
 
-		var node = new RD.SceneNode({ position: [slot_pos[0],slot_pos[1],-slot_pos[2]], name: "couple_B_slot_" + i, color: [0.6,0.2,0.3,1], mesh: "planeXZ", texture: "data/card_marker.png", scaling: this.card_size });
-		var slot = { slot: "couple", side:"B", index: i, _node: node };
-		node._card = slot;
-		this.slots_node.addChild( node );
-		this.slots.couples_B.push( slot );
+		var slot_pos = WebGLGameRenderer.couple_slots[i];
+		var slot_info = { slot: "couple", side:"B", index: i, name: "couple_B_slot_" + i };
+		var node = this.createSlot( [slot_pos[0],slot_pos[1],-slot_pos[2]], slot_info );
+		this.slots.couples_B.push( slot_info );
 	}
 
 	this.card_maker = new CardMaker();
 }
+
+WebGLGameRenderer.prototype.createSlot = function( slot_pos, slot_info )
+{
+	var node = new RD.SceneNode({ position: slot_pos, name: slot_info.name, });
+	var node2 = new RD.SceneNode({ name: slot_info.name + "_2", color: [0.3,0.2,0.1,1], mesh: "planeXZ", texture: "data/card_marker.png" , scaling: this.card_size });
+	node.addChild(node2);
+	node._card = slot_info;
+	node2._card = slot_info;
+	slot_info._node = node;
+	slot_info._node2 = node2;
+	this.slots_node.addChild( node );
+	return node;
+}
+
 
 WebGLGameRenderer.table_slots = [
 	[-1.2,0,-1.8],[1.2,0,-1.8],
@@ -227,7 +236,7 @@ WebGLGameRenderer.couple_slots = [
 	[-3.5,0,4.8],[-1.2,0,4.8],[1.2,0,4.8],[3.5,0,4.8]
 ];
 
-WebGLGameRenderer.prototype = Object.create( CanvasGameRenderer.prototype ); //inherit
+//WebGLGameRenderer.prototype = Object.create( CanvasGameRenderer.prototype ); //inherit
 
 WebGLGameRenderer.prototype.cardToSlot = function( card, type, index )
 {
@@ -324,7 +333,7 @@ WebGLGameRenderer.prototype.preRender = function( game )
 		else
 		{
 			slot._node.enabled = true;
-			slot._node.texture = slot._hover ? "data/card_marker_highlight.png" : "data/card_marker.png";
+			slot._node2.texture = slot._hover ? "data/card_marker_highlight.png" : "data/card_marker.png";
 		}
 	}
 
@@ -332,12 +341,12 @@ WebGLGameRenderer.prototype.preRender = function( game )
 	for(var i = 0; i < this.slots.couples_A.length; ++i)
 	{
 		var slot = this.slots.couples_A[i];
-		slot._node.texture = slot._hover ? "data/card_marker_highlight.png" : "data/card_marker.png";
+		slot._node2.texture = slot._hover ? "data/card_marker_highlight.png" : "data/card_marker.png";
 	}
 	for(var i = 0; i < this.slots.couples_B.length; ++i)
 	{
 		var slot = this.slots.couples_B[i];
-		slot._node.texture = slot._hover ? "data/card_marker_highlight.png" : "data/card_marker.png";
+		slot._node2.texture = slot._hover ? "data/card_marker_highlight.png" : "data/card_marker.png";
 	}
 }
 
@@ -345,6 +354,13 @@ WebGLGameRenderer.prototype.highlightCard = function( card, v )
 {
 	if(!this._highlight_node)
 		this._highlight_node = new RD.SceneNode({ position: [0,0.02,0], layers: 4, name: "highlight", color: [1,1,1,1], mesh: "planeXZ", texture: "data/card_marker.png", scaling: [2.2,2.2,1.1] });
+
+	if( !v )
+	{
+		if(this._highlight_node._parent)
+			this._highlight_node._parent.removeChild( this._highlight_node );
+		return;
+	}
 
 	if( this._highlight_node._parent != card._node )
 	{
@@ -360,7 +376,6 @@ WebGLGameRenderer.prototype.tweenNodeToNode = function( node, node )
 {
 	
 }
-
 
 WebGLGameRenderer.prototype.getCardNode = function(card)
 {

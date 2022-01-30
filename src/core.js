@@ -6,6 +6,9 @@ var CORE = {
 	default_stage: null,
 	current_stage: null,
 	files: {},
+	
+	mouse: [],
+	buttons: 0,
 
 	init: function()
 	{
@@ -19,7 +22,7 @@ var CORE = {
 		for(var i in this.stages)
 			this.stages[i].init();
 			
-		this.changeToStage( "play" );
+		this.changeStage( "play" );
 		this.enableFileDrop();
 
 		this.start();
@@ -29,6 +32,7 @@ var CORE = {
 	{
 		//create canvas
 		this.canvas = document.querySelector("canvas");
+		enableWebGLCanvas( this.canvas, { magFilter: GL.NEAREST, minFilter: GL.NEAREST } );
 		this._on_mouse_bind = this.processMouse.bind(this);
 		this._on_key_bind = this.processKey.bind(this);
 		this.canvas.addEventListener("mousedown", this._on_mouse_bind );
@@ -66,7 +70,7 @@ var CORE = {
 		this.stages[ stage.name ] = stage;
 	},
 	
-	changeToStage: function( stage )
+	changeStage: function( stage )
 	{
 		if(stage.constructor === String )
 			stage = this.stages[ stage ];
@@ -97,6 +101,10 @@ var CORE = {
 	//events to stages
 	onmouse: function(e)
 	{
+		this.mouse[0] = e.offsetX;
+		this.mouse[1] = e.offsetY;
+		this.buttons = e.buttons;
+
 		if(this.current_stage.onmouse)
 			this.current_stage.onmouse(e);
 	},
@@ -223,12 +231,12 @@ var CORE = {
 	{
 		if(e.code == "F1")
 		{
-			CORE.changeToStage( PLAYSTAGE );
+			CORE.changeStage( PLAYSTAGE );
 			e.preventDefault();
 		}
 		if(e.code == "F2")
 		{
-			//CORE.changeToStage( EDITORSTAGE );
+			//CORE.changeStage( EDITORSTAGE );
 			e.preventDefault();
 		}
 		//if(e.code == "KeyR")

@@ -563,7 +563,7 @@ function enableWebGLCanvas( canvas, options )
 					}
 					return tex;
 				}
-				return img.gl[ gl.context_id ] = GL.Texture.fromImage(img, { magFilter: gl.LINEAR, minFilter: gl.LINEAR_MIPMAP_LINEAR, wrap: wrap, ignore_pot:true, premultipliedAlpha: true, anisotropic: anisotropic } );
+				return img.gl[ gl.context_id ] = GL.Texture.fromImage(img, { magFilter: options.magFilter || GL.LINEAR, minFilter: options.minFilter || gl.LINEAR_MIPMAP_LINEAR, wrap: wrap, ignore_pot:true, premultipliedAlpha: true, anisotropic: anisotropic } );
 			}
 			else //probably a canvas
 			{

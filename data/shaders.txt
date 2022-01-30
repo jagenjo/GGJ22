@@ -1,5 +1,6 @@
 \shaders
 card basic.vs card.fs
+card_screen @SCREEN quad.fs
 
 \basic.vs
 
@@ -42,3 +43,14 @@ void main() {
 	gl_FragColor = color;
 }
 
+\quad.fs
+
+precision highp float;
+uniform sampler2D u_texture;
+varying vec2 v_coord;
+void main() {
+	vec4 color = texture2D(u_texture, v_coord);
+	if(color.a == 0.0)
+		discard;
+	gl_FragColor = color;
+}
