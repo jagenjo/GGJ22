@@ -210,8 +210,9 @@ Game.prototype.updateGoals = function( phase )
 	const N_ACTIVE_GOALS = 3;
 	for (var i = 0; i < N_ACTIVE_GOALS; ++i)
 	{
-		var card = phase_goals.randomPop();
-		this.cards.activeGoals.push(card);
+		var goal_card = phase_goals.randomPop();
+		this.cards.activeGoals.push(goal_card);
+    this.cards.mountGoals = this.cards.mountGoals.filter(card => card.id != goal_card.id);
 	}
 }
 
@@ -479,6 +480,7 @@ Game.prototype.submitGoal = function ( hand_id, goal_id )
 			if (this.cards.activeGoals[i].id == goal_card.id)
 			{
 				this.cards.activeGoals[i] = phase_goals.random();
+        this.cards.mountGoals = this.cards.mountGoals.filter(card => card.id != this.cards.activeGoals[i].id);
 				break;
 			}
 		}

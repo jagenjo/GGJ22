@@ -24,37 +24,37 @@ DECK.events = [
 	//el jugador escoge a que carta le afecta
 	{ idc: "inventor",	type: Card.TYPE_EVENT, icon: null, name : "Inventor", scope: "I", phase: 0, power: {TEC: 1, INT: 1} },
 	{ idc: "enfermo",	type: Card.TYPE_EVENT, icon: [0,0], name : "Enfermo", scope: "I",  phase: 0, power: {ATH: -1, EMP: 1} },
-	{ idc: "te",			type: Card.TYPE_EVENT, icon: [1,0], name : "Fiesta del te", scope: "I",  phase: 0, power: {CHAR: 1, EMP: 1} },
+	{ idc: "te",			type: Card.TYPE_EVENT, icon: [1,0], name : "Fiesta del te", scope: "I",  phase: 0, power: {CHA: 1, EMP: 1} },
 	{ idc: "inundacion", type: Card.TYPE_EVENT, icon: [2,0], name : "Inundacion", scope: "I",  phase: 0, power: {TEC: -1} },
 	{ idc: "cosecha",	type: Card.TYPE_EVENT, icon: [3,0], name : "Mala cosecha", scope: "I",  phase: 0, power: {EMP: -1} },
-	{ idc: "alcalde",	type: Card.TYPE_EVENT, icon: null, name : "El alcalde", scope: "I",  phase: 0, power: {CHAR: 1} },
+	{ idc: "alcalde",	type: Card.TYPE_EVENT, icon: null, name : "El alcalde", scope: "I",  phase: 0, power: {CHA: 1} },
 	{ idc: "misa",		type: Card.TYPE_EVENT, icon: null, name : "La misa", scope: "I",  phase: 0, power: {EMP: 1} },
 	{ idc: "caza",		type: Card.TYPE_EVENT, icon: null, name : "De caza", scope: "I",  phase: 0, power: {ATH: 1} },
 
 	//Fase 2
 	{ idc: "jjoo",		type: Card.TYPE_EVENT, icon: [0,1], name : "Los JJOO", scope: "I", phase: 1, power: {ATH: 2 } },
-	{ idc: "convencion", type: Card.TYPE_EVENT, icon: [1,1], name : "La Graan Convención", scope: "I",  phase: 1, power: {TEC: 2, INT: 1, ATH: -2, CHAR: -1} },
-	{ idc: "compositor", type: Card.TYPE_EVENT, icon: null, name : "Compositor musical", scope: "I",  phase: 1, power: {CHAR: 2} },
+	{ idc: "convencion", type: Card.TYPE_EVENT, icon: [1,1], name : "La Graan Convención", scope: "I",  phase: 1, power: {TEC: 2, INT: 1, ATH: -2, CHA: -1} },
+	{ idc: "compositor", type: Card.TYPE_EVENT, icon: null, name : "Compositor musical", scope: "I",  phase: 1, power: {CHA: 2} },
 	{ idc: "guerra",		type: Card.TYPE_EVENT, icon: [2,1], name : "A la guerra", scope: "I",  phase: 1, power: {EMP: -2, ATH: 1} },
 	{ idc: "volar",		type: Card.TYPE_EVENT, icon: [3,1], name : "Volar en avion", scope: "I",  phase: 1, power: {TEC: 2} },
 	{ idc: "profesor",	type: Card.TYPE_EVENT, icon: null, name : "El profesor", scope: "I",  phase: 1, power: {INT: 1} },
-	{ idc: "poeta",		type: Card.TYPE_EVENT, icon: null, name : "El poeta", scope: "I",  phase: 1, power: {EMP: 1, CHAR:1} },
-	{ idc: "borracho",	type: Card.TYPE_EVENT, icon: null, name : "El borracho", scope: "I",  phase: 1, power: {INT: -2, CHAR : 1} },
+	{ idc: "poeta",		type: Card.TYPE_EVENT, icon: null, name : "El poeta", scope: "I",  phase: 1, power: {EMP: 1, CHA:1} },
+	{ idc: "borracho",	type: Card.TYPE_EVENT, icon: null, name : "El borracho", scope: "I",  phase: 1, power: {INT: -2, CHA : 1} },
 
 	//Fase 3
 	{ idc: "ejercito",	type: Card.TYPE_EVENT, icon: null, name : "Al ejercito", scope: "I", phase: 2, power: {EMP: -2, ATH: 3} },
-	{ idc: "telefono",	type: Card.TYPE_EVENT, icon: [0,2], name : "Telefono nuevo", scope: "I",  phase: 2, power: {CHAR: 3, INT: -2} },
-	{ idc: "loteria",	type: Card.TYPE_EVENT, icon: null, name : "Ganar la loteria", scope: "I",  phase: 2, power: {CHAR: 2, EMP: 1, ATH: -2} },
-	{ idc: "divino",		type: Card.TYPE_EVENT, icon: [2,2], name : "Toque divino", scope: "I",  phase: 2, power: {EMP: 1, TEC: 1, INT: 1, ATH: 1, CHAR: 1}},
+	{ idc: "telefono",	type: Card.TYPE_EVENT, icon: [0,2], name : "Telefono nuevo", scope: "I",  phase: 2, power: {CHA: 3, INT: -2} },
+	{ idc: "loteria",	type: Card.TYPE_EVENT, icon: null, name : "Ganar la loteria", scope: "I",  phase: 2, power: {CHA: 2, EMP: 1, ATH: -2} },
+	{ idc: "divino",		type: Card.TYPE_EVENT, icon: [2,2], name : "Toque divino", scope: "I",  phase: 2, power: {EMP: 1, TEC: 1, INT: 1, ATH: 1, CHA: 1}},
 	{ idc: "muerte",		type: Card.TYPE_EVENT, icon: [1,2], name : "La muerte", scope: "I",  phase: 2, action : "death"},
-	{ idc: "internet",	type: Card.TYPE_EVENT, icon: null, name : "Internet", scope: "I",  phase: 2, power: {CHAR: -1, TEC: 2, ATH : -2} },
+	{ idc: "internet",	type: Card.TYPE_EVENT, icon: null, name : "Internet", scope: "I",  phase: 2, power: {CHA: -1, TEC: 2, ATH : -2} },
 	{ idc: "uni",		type: Card.TYPE_EVENT, icon: [3,2], name : "La universidad", scope: "I",  phase: 2, power: {INT: 2, EMP: 1} },
 	{ idc: "paz",		type: Card.TYPE_EVENT, icon: null, name : "La paz mundial", scope: "I",  phase: 2, power: {EMP: 3, TEC: -2} },
 
 	//Globales
 	//Afectan a todas las cartas
 	{ idc: "internet",	type: Card.TYPE_EVENT, icon: [0,3], name : "Internet", scope: "G", power: {EMP: -1, ATH: 2, ATH : -2} },
-	{ idc: "cura",		type: Card.TYPE_EVENT, icon: [1,3], name : "Nueva cura", scope: "G", power: {INT: 2, CHAR: -1, ATH : 1} },
+	{ idc: "cura",		type: Card.TYPE_EVENT, icon: [1,3], name : "Nueva cura", scope: "G", power: {INT: 2, CHA: -1, ATH : 1} },
 	{ idc: "alien",		type: Card.TYPE_EVENT, icon: [3,3], name : "Invasion alien", scope: "G", power: {EMP: 1, TEC: 3, INT : -2} },
 	{ idc: "galaxia",	type: Card.TYPE_EVENT, icon: [2,3], name : "Guerra contra otra galaxia", scope: "G", power: {EMP: -2, TEC: 1, INT : 2} }
 ];
